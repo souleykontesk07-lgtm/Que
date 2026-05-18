@@ -48,15 +48,21 @@
         .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
         .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
         
-        #feed { padding: 20px; padding-bottom: 240px; }
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        #feed { padding: 20px; padding-bottom: 290px; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
         
-        .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 20px; box-sizing: border-box; z-index: 200; }
-        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
+        /* Bouton de réaction 🎯 */
+        .react-bar { display: flex; justify-content: flex-end; margin-top: 15px; font-size: 0.85em; }
+        .react-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .react-btn:hover { border-color: var(--highlight); color: var(--highlight); }
+        .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: bold; }
+
+        .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 15px 20px; box-sizing: border-box; z-index: 200; }
+        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
         textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
         
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        footer { margin-top: 10px; text-align: center; font-size: 0.6em; color: var(--accent); }
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        footer { margin-top: 8px; text-align: center; font-size: 0.6em; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -99,12 +105,12 @@
             <textarea id="message-input" rows="2" placeholder="..."></textarea>
         </div>
         <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
+        <button id="share-btn" class="main-btn" style="background:transparent; color:var(--accent); border:1px solid var(--border); margin-top:8px; font-size:0.75em; padding:8px;" onclick="partagerApp()">PARTAGER L'APPLICATION</button>
         <footer>
             <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer;">Légal / Legal / Aviso Legal</span>
         </footer>
     </div>
 
-    <!-- On charge Supabase tout en bas, de manière asynchrone -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
@@ -113,6 +119,7 @@
         
         let supabaseClient = null;
         let currentLang = 'fr';
+        let currentTabIdx = 0;
 
         const translations = {
             fr: {
@@ -142,7 +149,7 @@
                 m_title: "MANIFIESTO DE QUÉ",
                 m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.",
                 m_btn: "ENTRAR",
-                tabs: ["Política", "Anatomía", "Cultura", "Sociedad"],
+                tabs: ["Política", "Économía", "Cultura", "Sociedad"],
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
                 alert: "El silencio no conciencia a nadie.",
@@ -150,18 +157,13 @@
             }
         };
 
-        // Connexion sécurisée au moment du clic sur J'ENTRE
         function entrerApp() {
             document.getElementById('manifesto-screen').style.display = 'none';
-            
             try {
                 if (window.supabase) {
                     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 }
-            } catch(e) {
-                console.log("Supabase non disponible.");
-            }
-            
+            } catch(e) {}
             chargerMessages();
         }
 
@@ -198,24 +200,28 @@
         }
 
         function switchTab(i) {
+            currentTabIdx = i;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab')[i].classList.add('active');
+            chargerMessages();
         }
 
+        // LECTURE AVEC LE TRI DES VOTES (Influence de l'élite)
         async function chargerMessages() {
             const feed = document.getElementById('feed');
-            
             if (!supabaseClient) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode Démo local actif. Connectez la base de données.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode Démo local actif.</p>";
                 return;
             }
 
             feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Lecture de l'ombre...</p>";
 
             try {
+                // On trie d'abord par votes (descendant), puis par date pour classer l'élite
                 const { data, error } = await supabaseClient
                     .from('messages')
                     .select('*')
+                    .order('votes', { ascending: false })
                     .order('created_at', { ascending: false })
                     .limit(50);
 
@@ -227,14 +233,72 @@
                     return;
                 }
 
+                // Récupérer les messages déjà votés par l'utilisateur
+                let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
+
                 data.forEach(msg => {
                     const card = document.createElement('div');
                     card.className = 'post-card';
-                    card.innerText = msg.content;
+                    
+                    const textEl = document.createElement('div');
+                    textEl.innerText = msg.content;
+                    card.appendChild(textEl);
+
+                    // Barre de réaction 🎯
+                    const reactBar = document.createElement('div');
+                    reactBar.className = 'react-bar';
+                    
+                    const reactBtn = document.createElement('button');
+                    const hasVoted = votedMessages.includes(msg.id);
+                    reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
+                    reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
+                    
+                    // Clic sur le bouton de réaction
+                    reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
+                    
+                    reactBar.appendChild(reactBtn);
+                    card.appendChild(reactBar);
                     feed.appendChild(card);
                 });
             } catch(e) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur Supabase. Vérifiez les droits de votre table.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur Supabase. Vérifiez la colonne votes.</p>";
+            }
+        }
+
+        // ACTION DE RÉACTION ANONYME (+1 SUR SUPABASE)
+        async function reagirMessage(id, btnElement, currentVotes) {
+            let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
+            
+            // Si l'utilisateur a déjà voté, on bloque pour éviter le spam
+            if (votedMessages.includes(id)) {
+                alert("Vous avez déjà propulsé cette vérité vers l'élite.");
+                return;
+            }
+
+            const nouveauxVotes = currentVotes + 1;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .update({ votes: nouveauxVotes })
+                    .eq('id', id);
+
+                if (error) {
+                    alert("Impossible d'enregistrer la réaction.");
+                } else {
+                    // Sauvegarde locale pour bloquer le double vote
+                    votedMessages.push(id);
+                    localStorage.setItem('que_votes', JSON.stringify(votedMessages));
+                    
+                    // Mise à jour visuelle instantanée
+                    btnElement.classList.add('voted');
+                    btnElement.querySelector('span').innerText = nouveauxVotes;
+                    
+                    // On recharge doucement après 1 seconde pour réorganiser le classement
+                    setTimeout(chargerMessages, 1000);
+                }
+            } catch(e) {
+                alert("Erreur réseau.");
             }
         }
 
@@ -245,11 +309,6 @@
             const messageComplet = `${translations[currentLang].prefix} ${input.value}`;
 
             if (!supabaseClient) {
-                // Mode de secours si la base ne répond pas : on l'affiche juste à l'écran temporairement
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerText = messageComplet;
-                document.getElementById('feed').prepend(card);
                 input.value = "";
                 return;
             }
@@ -257,10 +316,10 @@
             try {
                 const { error } = await supabaseClient
                     .from('messages')
-                    .insert([{ content: messageComplet }]);
+                    .insert([{ content: messageComplet, votes: 0 }]); // On initialise explicitement à 0
 
                 if (error) {
-                    alert("Erreur Supabase: " + error.message);
+                    alert("Erreur: " + error.message);
                 } else {
                     input.value = "";
                     chargerMessages();
@@ -269,6 +328,21 @@
                 alert("Erreur réseau.");
             }
         }
+
+        function partagerApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'QUÉ',
+                    text: 'Ici, vous n’êtes personne. Dites tout haut ce que vous vivez tout bas pour conscientiser l’élite.',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Lien de l'application copié ! Partagez-le où vous voulez.");
+            }
+        }
+
+        setLang('fr');
     </script>
 </body>
 </html>
