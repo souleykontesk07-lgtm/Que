@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUÃ‰ - La Voix de l'Ombre</title>
+    <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
     <style>
         :root {
-            /* Couleurs par dÃ©faut (Mode Nuit) */
+            /* Couleurs par défaut (Mode Nuit) */
             --bg: #000000;
             --card-bg: #0a0a0a;
             --text: #E0E0E0;
@@ -34,7 +34,7 @@
             margin: 0; padding: 0; line-height: 1.6;
         }
 
-        /* Bouton ThÃ¨me */
+        /* Bouton Thème */
         .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
         .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
 
@@ -43,7 +43,7 @@
         .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; }
         .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
         
-        /* Ã‰cran Manifeste */
+        /* Écran Manifeste */
         #manifesto-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; box-sizing: border-box; }
         
         /* Structure de l'application */
@@ -57,7 +57,7 @@
         #feed { padding: 20px; padding-bottom: 240px; }
         .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; }
         
-        /* Zone d'Ã©criture fixe en bas */
+        /* Zone d'écriture fixe en bas */
         .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 20px; box-sizing: border-box; z-index: 200; }
         .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
         textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
@@ -68,9 +68,9 @@
 </head>
 <body>
 
-    <!-- ContrÃ´les du haut -->
+    <!-- Contrôles du haut -->
     <div class="theme-switch">
-        <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">ðŸŒ™</button>
+        <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
     </div>
 
     <div class="lang-switch">
@@ -79,24 +79,24 @@
         <button class="lang-btn" onclick="setLang('es')">ES</button>
     </div>
 
-    <!-- Ã‰cran de bienvenue obligatoire -->
+    <!-- Écran de bienvenue obligatoire -->
     <div id="manifesto-screen">
-        <h2 id="m-title">MANIFESTE DE QUÃ‰</h2>
+        <h2 id="m-title">MANIFESTE DE QUÉ</h2>
         <p id="m-text">...</p>
         <button id="m-btn" class="main-btn" style="width: 200px;" onclick="document.getElementById('manifesto-screen').style.display='none'">J'ENTRE</button>
     </div>
 
     <!-- Application Principale -->
     <header>
-        <h1>QUÃ‰</h1>
+        <h1>QUÉ</h1>
         <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;"></p>
     </header>
 
     <div class="tabs">
         <div id="tab1" class="tab active" onclick="switchTab(0)">Politique</div>
-        <div id="tab2" class="tab" onclick="switchTab(1)">Ã‰conomie</div>
+        <div id="tab2" class="tab" onclick="switchTab(1)">Économie</div>
         <div id="tab3" class="tab" onclick="switchTab(2)">Culture</div>
-        <div id="tab4" class="tab" onclick="switchTab(3)">SociÃ©tÃ©</div>
+        <div id="tab4" class="tab" onclick="switchTab(3)">Société</div>
     </div>
 
     <div id="feed"></div>
@@ -109,18 +109,18 @@
         </div>
         <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
         <footer>
-            <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer;">LÃ©gal / Legal / Aviso Legal</span>
+            <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer;">Légal / Legal / Aviso Legal</span>
         </footer>
     </div>
 
-        <!-- On charge la bibliothèque Supabase directement depuis le web -->
+    <!-- Chargement propre de la bibliothèque Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-                // CONFIGURATION SUPABASE (Remplace avec tes propres clés récupérées à l'étape 3)
+        // CONFIGURATION SUPABASE OK
         const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
-
+        
         // Initialisation de la connexion
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -186,51 +186,56 @@
             alert(translations[currentLang].legal);
         }
 
-        // CETTE FONCTION LIT LES MESSAGES DANS LA BASE DE DONNÉES
+        // Chargement des messages depuis Supabase
         async function chargerMessages() {
             const feed = document.getElementById('feed');
             feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Chargement des secrets...</p>";
             
-            // On récupère les 50 derniers messages triés par date
-            const { data, error } = await supabase
-                .from('messages')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(50);
+            try {
+                const { data, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
 
-            feed.innerHTML = "";
+                feed.innerHTML = "";
 
-            if (error || !data || data.length === 0) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucun message pour le moment.</p>";
-                return;
+                if (error || !data || data.length === 0) {
+                    feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucun message pour le moment.</p>";
+                    return;
+                }
+
+                data.forEach(msg => {
+                    const card = document.createElement('div');
+                    card.className = 'post-card';
+                    card.innerText = msg.content;
+                    feed.appendChild(card);
+                });
+            } catch(e) {
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de connexion.</p>";
             }
-
-            data.forEach(msg => {
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerText = msg.content;
-                feed.appendChild(card);
-            });
         }
 
-        // CETTE FONCTION ENVOIE LE MESSAGE DANS LA BASE DE DONNÉES
+        // Publication sur Supabase
         async function publier() {
             const input = document.getElementById('message-input');
             if(input.value.trim() === "") return alert(translations[currentLang].alert);
             
             const messageComplet = `${translations[currentLang].prefix} ${input.value}`;
 
-            // Envoi à Supabase
-            const { error } = await supabase
-                .from('messages')
-                .insert([{ content: messageComplet }]);
+            try {
+                const { error } = await supabase
+                    .from('messages')
+                    .insert([{ content: messageComplet }]);
 
-            if (error) {
-                alert("Erreur lors de la publication : " + error.message);
-            } else {
-                input.value = "";
-                // On recharge le flux pour voir apparaître le nouveau message
-                chargerMessages();
+                if (error) {
+                    alert("Erreur lors de la publication : " + error.message);
+                } else {
+                    input.value = "";
+                    chargerMessages();
+                }
+            } catch(e) {
+                alert("Erreur réseau.");
             }
         }
 
@@ -243,13 +248,13 @@
             document.body.classList.toggle('light-mode');
             const icon = document.getElementById('theme-icon');
             if (document.body.classList.contains('light-mode')) {
-                icon.innerText = '';
+                icon.innerText = '☀️';
             } else {
-                icon.innerText = '';
+                icon.innerText = '🌙';
             }
         }
 
-        // Lancement initial
+        // Initialisation automatique
         setLang('fr');
     </script>
 </body>
