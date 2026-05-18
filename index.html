@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
-    
-    <!-- ÉTAPE 1 : On charge Supabase tout en haut pour être sûr qu'il soit là à temps -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         :root {
             --bg: #000000;
@@ -70,20 +66,20 @@
     </div>
 
     <div class="lang-switch">
-        <button id="btn-fr" class="lang-btn" onclick="setLang('fr')">FR</button>
+        <button id="btn-fr" class="lang-btn active" onclick="setLang('fr')">FR</button>
         <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
         <button id="btn-es" class="lang-btn" onclick="setLang('es')">ES</button>
     </div>
 
     <div id="manifesto-screen">
         <h2 id="m-title">MANIFESTE DE QUÉ</h2>
-        <p id="m-text">Ici, vous n'êtes personne...</p>
-        <button id="m-btn" class="main-btn" style="width: 200px;" onclick="document.getElementById('manifesto-screen').style.display='none'">J'ENTRE</button>
+        <p id="m-text">Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.</p>
+        <button id="m-btn" class="main-btn" style="width: 200px;" onclick="entrerApp()">J'ENTRE</button>
     </div>
 
     <header>
         <h1>QUÉ</h1>
-        <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;"></p>
+        <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Conscientiser l'élite, une vérité à la fois.</p>
     </header>
 
     <div class="tabs">
@@ -93,11 +89,13 @@
         <div id="tab4" class="tab" onclick="switchTab(3)">Société</div>
     </div>
 
-    <div id="feed"></div>
+    <div id="feed">
+        <p style='text-align:center; color:var(--accent); font-size:0.8em;'>L'application attend votre entrée...</p>
+    </div>
 
     <div class="input-area">
         <div class="input-container">
-            <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:5px;"></span>
+            <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:5px;">Je ne dis pas que...</span>
             <textarea id="message-input" rows="2" placeholder="..."></textarea>
         </div>
         <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
@@ -106,21 +104,15 @@
         </footer>
     </div>
 
+    <!-- On charge Supabase tout en bas, de manière asynchrone -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
-        // CONFIGURATION CONFIGURÉE ET SÉCURISÉE
         const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
         
-        let supabase = null;
-        
-        // On initialise Supabase de manière sécurisée pour ne pas tout bloquer en cas d'erreur
-        try {
-            if (typeof supabase !== 'undefined') {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
-        } catch(e) {
-            console.log("Erreur d'initialisation Supabase ignorée pour préserver l'interface.");
-        }
+        let supabaseClient = null;
+        let currentLang = 'fr';
 
         const translations = {
             fr: {
@@ -150,19 +142,31 @@
                 m_title: "MANIFIESTO DE QUÉ",
                 m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.",
                 m_btn: "ENTRAR",
-                tabs: ["Política", "Economía", "Cultura", "Sociedad"],
+                tabs: ["Política", "Anatomía", "Cultura", "Sociedad"],
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
                 alert: "El silencio no conciencia a nadie.",
-                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para donuts."
+                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos."
             }
         };
 
-        let currentLang = 'fr';
+        // Connexion sécurisée au moment du clic sur J'ENTRE
+        function entrerApp() {
+            document.getElementById('manifesto-screen').style.display = 'none';
+            
+            try {
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                }
+            } catch(e) {
+                console.log("Supabase non disponible.");
+            }
+            
+            chargerMessages();
+        }
 
         function setLang(lang) {
             currentLang = lang;
-            
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             const activeBtn = document.getElementById(`btn-${lang}`);
             if(activeBtn) activeBtn.classList.add('active');
@@ -178,33 +182,48 @@
             document.getElementById('tab3').innerText = translations[lang].tabs[2];
             document.getElementById('tab4').innerText = translations[lang].tabs[3];
             
-            chargerMessages();
+            if(document.getElementById('manifesto-screen').style.display === 'none') {
+                chargerMessages();
+            }
         }
 
         function alertLegal() {
             alert(translations[currentLang].legal);
         }
 
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            icon.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        }
+
+        function switchTab(i) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[i].classList.add('active');
+        }
+
         async function chargerMessages() {
             const feed = document.getElementById('feed');
-            feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Chargement des secrets...</p>";
             
-            if (!supabase) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode hors-ligne ou base de données inaccessible.</p>";
+            if (!supabaseClient) {
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode Démo local actif. Connectez la base de données.</p>";
                 return;
             }
 
+            feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Lecture de l'ombre...</p>";
+
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('messages')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(50);
 
-                feed.innerHTML = "";
+                if (error) throw error;
 
-                if (error || !data || data.length === 0) {
-                    feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucun message pour le moment.</p>";
+                feed.innerHTML = "";
+                if (!data || data.length === 0) {
+                    feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucune vérité pour le moment.</p>";
                     return;
                 }
 
@@ -215,7 +234,7 @@
                     feed.appendChild(card);
                 });
             } catch(e) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de chargement.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur Supabase. Vérifiez les droits de votre table.</p>";
             }
         }
 
@@ -223,45 +242,33 @@
             const input = document.getElementById('message-input');
             if(input.value.trim() === "") return alert(translations[currentLang].alert);
             
-            if (!supabase) {
-                return alert("Impossible de publier : la base de données ne répond pas.");
-            }
-
             const messageComplet = `${translations[currentLang].prefix} ${input.value}`;
 
+            if (!supabaseClient) {
+                // Mode de secours si la base ne répond pas : on l'affiche juste à l'écran temporairement
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerText = messageComplet;
+                document.getElementById('feed').prepend(card);
+                input.value = "";
+                return;
+            }
+
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('messages')
                     .insert([{ content: messageComplet }]);
 
                 if (error) {
-                    alert("Détails de l'erreur : " + error.message);
+                    alert("Erreur Supabase: " + error.message);
                 } else {
                     input.value = "";
                     chargerMessages();
                 }
             } catch(e) {
-                alert("Erreur réseau lors de l'envoi.");
+                alert("Erreur réseau.");
             }
         }
-
-        function switchTab(i) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab')[i].classList.add('active');
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            const icon = document.getElementById('theme-icon');
-            if (document.body.classList.contains('light-mode')) {
-                icon.innerText = '☀️';
-            } else {
-                icon.innerText = '🌙';
-            }
-        }
-
-        // Lancement forcé
-        setLang('fr');
     </script>
 </body>
 </html>
