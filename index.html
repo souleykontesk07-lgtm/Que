@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUÉ - La Voix de l'Ombre</title>
+    <style>
+        :root {
+            /* Couleurs par défaut (Mode Nuit) */
+            --bg: #000000;
+            --card-bg: #0a0a0a;
+            --text: #E0E0E0;
+            --accent: #888888;
+            --border: #222222;
+            --highlight: #ffffff;
+        }
+
+        /* Variables pour le Mode Jour */
+        body.light-mode {
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --accent: #666666;
+            --border: #dddddd;
+            --highlight: #000000;
+        }
+
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Courier New', Courier, monospace; 
+            transition: background 0.3s, color 0.3s;
+            margin: 0; padding: 0; 
+        }
+
+        /* Bouton Thème */
+        .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
+        .theme-btn { background: transparent; border: 1px solid var(--border); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
+
+        /* Le reste du style reste identique, utilisant les variables CSS */
+        .lang-switch { position: absolute; top: 20px; right: 20px; z-index: 1100; display: flex; gap: 5px; }
+        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; }
+        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; }
+        .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
+        .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; }
+        .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
+        #feed { padding: 20px; padding-bottom: 220px; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 20px; box-sizing: border-box; }
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="theme-switch">
+        <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('es')">ES</button>
+    </div>
+
+    <header>
+        <h1>QUÉ</h1>
+        <p id="tagline"></p>
+    </header>
+
+    <div class="tabs">
+        <div id="tab1" class="tab active" onclick="switchTab(0)">Politique</div>
+        <div id="tab2" class="tab" onclick="switchTab(1)">Économie</div>
+        <div id="tab3" class="tab" onclick="switchTab(2)">Culture</div>
+        <div id="tab4" class="tab" onclick="switchTab(3)">Société</div>
+    </div>
+
+    <div id="feed"></div>
+
+    <div class="input-area">
+        <textarea id="message-input" placeholder="..."></textarea>
+        <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
+    </div>
+
+    <script>
+        // Logique du Thème
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            if (document.body.classList.contains('light-mode')) {
+                icon.innerText = '☀️';
+            } else {
+                icon.innerText = '🌙';
+            }
+        }
+
+        // Gardez le reste de votre logique de traduction et de publication ici...
+        // (Le script précédent reste le même)
+    </script>
+</body>
+</html>
