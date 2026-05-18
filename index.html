@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUÉ - La Voix de l'Ombre</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         :root {
             /* Couleurs par défaut (Mode Nuit) */
@@ -30,28 +31,44 @@
             color: var(--text); 
             font-family: 'Courier New', Courier, monospace; 
             transition: background 0.3s, color 0.3s;
-            margin: 0; padding: 0; 
+            margin: 0; padding: 0; line-height: 1.6;
         }
 
         /* Bouton Thème */
         .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
-        .theme-btn { background: transparent; border: 1px solid var(--border); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
+        .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
 
-        /* Le reste du style reste identique, utilisant les variables CSS */
+        /* Changement de langue */
         .lang-switch { position: absolute; top: 20px; right: 20px; z-index: 1100; display: flex; gap: 5px; }
         .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; }
-        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; }
-        .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
-        .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; }
+        .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
+        
+        /* Écran Manifeste */
+        #manifesto-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; box-sizing: border-box; }
+        
+        /* Structure de l'application */
+        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; position: sticky; top: 0; background: var(--bg); z-index: 100; }
+        h1 { letter-spacing: 10px; margin: 0; font-size: 2.5em; }
+        
+        .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--bg); }
+        .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
         .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
-        #feed { padding: 20px; padding-bottom: 220px; }
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 20px; box-sizing: border-box; }
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        #feed { padding: 20px; padding-bottom: 240px; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        
+        /* Zone d'écriture fixe en bas */
+        .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 20px; box-sizing: border-box; z-index: 200; }
+        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
+        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
+        
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        footer { margin-top: 10px; text-align: center; font-size: 0.6em; color: var(--accent); }
     </style>
 </head>
 <body>
 
+    <!-- Contrôles du haut -->
     <div class="theme-switch">
         <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
     </div>
@@ -62,9 +79,17 @@
         <button class="lang-btn" onclick="setLang('es')">ES</button>
     </div>
 
+    <!-- Écran de bienvenue obligatoire -->
+    <div id="manifesto-screen">
+        <h2 id="m-title">MANIFESTE DE QUÉ</h2>
+        <p id="m-text">...</p>
+        <button id="m-btn" class="main-btn" style="width: 200px;" onclick="document.getElementById('manifesto-screen').style.display='none'">J'ENTRE</button>
+    </div>
+
+    <!-- Application Principale -->
     <header>
         <h1>QUÉ</h1>
-        <p id="tagline"></p>
+        <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;"></p>
     </header>
 
     <div class="tabs">
@@ -76,13 +101,119 @@
 
     <div id="feed"></div>
 
+    <!-- Zone de publication -->
     <div class="input-area">
-        <textarea id="message-input" placeholder="..."></textarea>
+        <div class="input-container">
+            <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:5px;"></span>
+            <textarea id="message-input" rows="2" placeholder="..."></textarea>
+        </div>
         <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
+        <footer>
+            <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer;">Légal / Legal / Aviso Legal</span>
+        </footer>
     </div>
 
     <script>
-        // Logique du Thème
+        // Gestion des traductions
+        const translations = {
+            fr: {
+                tagline: "Conscientiser l'élite, une vérité à la fois.",
+                m_title: "MANIFESTE DE QUÉ",
+                m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.",
+                m_btn: "J'ENTRE",
+                tabs: ["Politique", "Économie", "Culture", "Société"],
+                prefix: "Je ne dis pas que...",
+                pub_btn: "PUBLIER",
+                alert: "Le silence ne conscientise personne.",
+                legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures."
+            },
+            en: {
+                tagline: "Raising awareness, one truth at a time.",
+                m_title: "THE QUÉ MANIFESTO",
+                m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.",
+                m_btn: "ENTER",
+                tabs: ["Politics", "Economy", "Culture", "Society"],
+                prefix: "I'm not saying that...",
+                pub_btn: "POST",
+                alert: "Silence raises no awareness.",
+                legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only."
+            },
+            es: {
+                tagline: "Concienciar a la élite, una verdad a la vez.",
+                m_title: "MANIFIESTO DE QUÉ",
+                m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.",
+                m_btn: "ENTRAR",
+                tabs: ["Política", "Economía", "Cultura", "Sociedad"],
+                prefix: "No digo que...",
+                pub_btn: "PUBLICAR",
+                alert: "El silencio no conciencia a nadie.",
+                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos."
+            }
+        };
+
+        let currentLang = 'fr';
+
+        // Changer la langue de l'application
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.querySelector(`button[onclick="setLang('${lang}')"]`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            document.getElementById('tagline').innerText = translations[lang].tagline;
+            document.getElementById('m-title').innerText = translations[lang].m_title;
+            document.getElementById('m-text').innerHTML = translations[lang].m_text;
+            document.getElementById('m-btn').innerText = translations[lang].m_btn;
+            document.getElementById('pub-btn').innerText = translations[lang].pub_btn;
+            document.getElementById('prefix-ui').innerText = translations[lang].prefix;
+            document.getElementById('tab1').innerText = translations[lang].tabs[0];
+            document.getElementById('tab2').innerText = translations[lang].tabs[1];
+            document.getElementById('tab3').innerText = translations[lang].tabs[2];
+            document.getElementById('tab4').innerText = translations[lang].tabs[3];
+            
+            loadSeeds(lang);
+        }
+
+        // Alerte Mentions Légales
+        function alertLegal() {
+            alert(translations[currentLang].legal);
+        }
+
+        // Charger les messages factices d'exemple
+        function loadSeeds(lang) {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = "";
+            const seeds = [
+                translations[lang].prefix + (lang === 'fr' ? " le plan de relance n'a jamais traversé ma frontière." : lang === 'es' ? " el plan de recuperación nunca cruzó mi frontera." : " the recovery plan never crossed my border."),
+                translations[lang].prefix + (lang === 'fr' ? " mon salaire ne sert qu'à payer le loyer." : lang === 'es' ? " mi sueldo solo sirve para pagar el alquiler." : " my salary only serves to pay the rent.")
+            ];
+            seeds.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerText = s;
+                feed.appendChild(card);
+            });
+        }
+
+        // Publier un message localement
+        function publier() {
+            const input = document.getElementById('message-input');
+            if(input.value.trim() === "") return alert(translations[currentLang].alert);
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${translations[currentLang].prefix}</span> ${input.value}`;
+            document.getElementById('feed').prepend(card);
+            input.value = "";
+        }
+
+        // Changer d'onglet (Piliers)
+        function switchTab(i) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[i].classList.add('active');
+            // Optionnel : On peut vider ou changer le flux de messages ici selon l'onglet
+        }
+
+        // Logique du Thème (Jour / Nuit)
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
             const icon = document.getElementById('theme-icon');
@@ -93,8 +224,8 @@
             }
         }
 
-        // Gardez le reste de votre logique de traduction et de publication ici...
-        // (Le script précédent reste le même)
+        // Initialisation de la langue par défaut au chargement
+        setLang('fr');
     </script>
 </body>
 </html>
