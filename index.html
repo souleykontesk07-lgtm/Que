@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
+    
+    <!-- ÉTAPE 1 : On charge Supabase tout en haut pour être sûr qu'il soit là à temps -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
-            /* Couleurs par défaut (Mode Nuit) */
             --bg: #000000;
             --card-bg: #0a0a0a;
             --text: #E0E0E0;
@@ -16,7 +19,6 @@
             --highlight: #ffffff;
         }
 
-        /* Variables pour le Mode Jour */
         body.light-mode {
             --bg: #f5f5f5;
             --card-bg: #ffffff;
@@ -34,19 +36,15 @@
             margin: 0; padding: 0; line-height: 1.6;
         }
 
-        /* Bouton Thème */
         .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
         .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
 
-        /* Changement de langue */
         .lang-switch { position: absolute; top: 20px; right: 20px; z-index: 1100; display: flex; gap: 5px; }
         .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; }
         .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
         
-        /* Écran Manifeste */
         #manifesto-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; box-sizing: border-box; }
         
-        /* Structure de l'application */
         header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; position: sticky; top: 0; background: var(--bg); z-index: 100; }
         h1 { letter-spacing: 10px; margin: 0; font-size: 2.5em; }
         
@@ -57,7 +55,6 @@
         #feed { padding: 20px; padding-bottom: 240px; }
         .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; }
         
-        /* Zone d'écriture fixe en bas */
         .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 20px; box-sizing: border-box; z-index: 200; }
         .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
         textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
@@ -68,25 +65,22 @@
 </head>
 <body>
 
-    <!-- Contrôles du haut -->
     <div class="theme-switch">
         <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
     </div>
 
     <div class="lang-switch">
-        <button class="lang-btn active" onclick="setLang('fr')">FR</button>
-        <button class="lang-btn" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" onclick="setLang('es')">ES</button>
+        <button id="btn-fr" class="lang-btn" onclick="setLang('fr')">FR</button>
+        <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
+        <button id="btn-es" class="lang-btn" onclick="setLang('es')">ES</button>
     </div>
 
-    <!-- Écran de bienvenue obligatoire -->
     <div id="manifesto-screen">
         <h2 id="m-title">MANIFESTE DE QUÉ</h2>
-        <p id="m-text">...</p>
+        <p id="m-text">Ici, vous n'êtes personne...</p>
         <button id="m-btn" class="main-btn" style="width: 200px;" onclick="document.getElementById('manifesto-screen').style.display='none'">J'ENTRE</button>
     </div>
 
-    <!-- Application Principale -->
     <header>
         <h1>QUÉ</h1>
         <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;"></p>
@@ -101,7 +95,6 @@
 
     <div id="feed"></div>
 
-    <!-- Zone de publication -->
     <div class="input-area">
         <div class="input-container">
             <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:5px;"></span>
@@ -113,16 +106,21 @@
         </footer>
     </div>
 
-    <!-- Chargement propre de la bibliothèque Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
-        // CONFIGURATION SUPABASE OK
+        // CONFIGURATION CONFIGURÉE ET SÉCURISÉE
         const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
         
-        // Initialisation de la connexion
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase = null;
+        
+        // On initialise Supabase de manière sécurisée pour ne pas tout bloquer en cas d'erreur
+        try {
+            if (typeof supabase !== 'undefined') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e) {
+            console.log("Erreur d'initialisation Supabase ignorée pour préserver l'interface.");
+        }
 
         const translations = {
             fr: {
@@ -156,7 +154,7 @@
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
                 alert: "El silencio no conciencia a nadie.",
-                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos."
+                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para donuts."
             }
         };
 
@@ -164,8 +162,9 @@
 
         function setLang(lang) {
             currentLang = lang;
+            
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.querySelector(`button[onclick="setLang('${lang}')"]`);
+            const activeBtn = document.getElementById(`btn-${lang}`);
             if(activeBtn) activeBtn.classList.add('active');
             
             document.getElementById('tagline').innerText = translations[lang].tagline;
@@ -186,11 +185,15 @@
             alert(translations[currentLang].legal);
         }
 
-        // Chargement des messages depuis Supabase
         async function chargerMessages() {
             const feed = document.getElementById('feed');
             feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Chargement des secrets...</p>";
             
+            if (!supabase) {
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode hors-ligne ou base de données inaccessible.</p>";
+                return;
+            }
+
             try {
                 const { data, error } = await supabase
                     .from('messages')
@@ -212,15 +215,18 @@
                     feed.appendChild(card);
                 });
             } catch(e) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de connexion.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de chargement.</p>";
             }
         }
 
-        // Publication sur Supabase
         async function publier() {
             const input = document.getElementById('message-input');
             if(input.value.trim() === "") return alert(translations[currentLang].alert);
             
+            if (!supabase) {
+                return alert("Impossible de publier : la base de données ne répond pas.");
+            }
+
             const messageComplet = `${translations[currentLang].prefix} ${input.value}`;
 
             try {
@@ -229,13 +235,13 @@
                     .insert([{ content: messageComplet }]);
 
                 if (error) {
-                    alert("Erreur lors de la publication : " + error.message);
+                    alert("Détails de l'erreur : " + error.message);
                 } else {
                     input.value = "";
                     chargerMessages();
                 }
             } catch(e) {
-                alert("Erreur réseau.");
+                alert("Erreur réseau lors de l'envoi.");
             }
         }
 
@@ -254,7 +260,7 @@
             }
         }
 
-        // Initialisation automatique
+        // Lancement forcé
         setLang('fr');
     </script>
 </body>
