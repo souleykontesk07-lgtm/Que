@@ -51,10 +51,11 @@
         #feed { padding: 20px; padding-bottom: 290px; }
         .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
         
-        .react-bar { display: flex; justify-content: flex-end; margin-top: 15px; font-size: 0.85em; }
-        .react-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
-        .react-btn:hover { border-color: var(--highlight); color: var(--highlight); }
+        .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; font-size: 0.85em; gap: 10px; }
+        .react-btn, .report-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .react-btn:hover, .report-btn:hover { border-color: var(--highlight); color: var(--highlight); }
         .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: bold; }
+        .report-btn { font-size: 0.9em; padding: 4px 8px; }
 
         .input-area { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 15px 20px; box-sizing: border-box; z-index: 200; }
         .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
@@ -148,7 +149,9 @@
                 prefix: "Je ne dis pas que...",
                 pub_btn: "PUBLIER",
                 alert: "Le silence ne conscientise personne.",
-                legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures."
+                legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.",
+                report_confirm: "Signaler ce contenu comme inapproprié ?",
+                reported: "Contenu signalé. Il sera examiné sous 24h."
             },
             en: {
                 tagline: "Raising awareness, one truth at a time.",
@@ -159,7 +162,9 @@
                 prefix: "I'm not saying that...",
                 pub_btn: "POST",
                 alert: "Silence raises no awareness.",
-                legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only."
+                legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.",
+                report_confirm: "Report this content as inappropriate?",
+                reported: "Content reported. It will be reviewed within 24h."
             },
             es: {
                 tagline: "Concienciar a la élite, una verdad a la vez.",
@@ -170,7 +175,9 @@
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
                 alert: "El silencio no conciencia a nadie.",
-                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos."
+                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos.",
+                report_confirm: "¿Reportar este contenido como inapropiado?",
+                reported: "Contenido reportado. Será revisado en 24 horas."
             }
         };
 
@@ -236,10 +243,12 @@
             const themeFiltre = nomsThemes[currentTabIdx];
 
             try {
+                // IMPORTANT : On filtre pour ne prendre QUE les messages où signale = false
                 const { data, error } = await supabaseClient
                     .from('messages')
                     .select('*')
                     .eq('theme', themeFiltre)
+                    .eq('signale', false) 
                     .order('votes', { ascending: false })
                     .order('created_at', { ascending: false })
                     .limit(50);
@@ -257,6 +266,7 @@
                 data.forEach(msg => {
                     const card = document.createElement('div');
                     card.className = 'post-card';
+                    card.id = `msg-${msg.id}`;
                     
                     const textEl = document.createElement('div');
                     textEl.innerText = msg.content;
@@ -265,19 +275,26 @@
                     const reactBar = document.createElement('div');
                     reactBar.className = 'react-bar';
                     
+                    // Bouton de vote 🎯
                     const reactBtn = document.createElement('button');
                     const hasVoted = votedMessages.includes(msg.id);
                     reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
                     reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
-                    
                     reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
                     
+                    // Bouton de signalement 🚩 (Obligatoire Stores)
+                    const reportBtn = document.createElement('button');
+                    reportBtn.className = 'report-btn';
+                    reportBtn.innerHTML = `🚩`;
+                    reportBtn.onclick = () => signalerMessage(msg.id);
+
+                    reactBar.appendChild(reportBtn);
                     reactBar.appendChild(reactBtn);
                     card.appendChild(reactBar);
                     feed.appendChild(card);
                 });
             } catch(e) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de filtrage. Vérifiez la colonne theme sur Supabase.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de filtrage. Vérifiez les colonnes sur Supabase.</p>";
             }
         }
 
@@ -307,6 +324,30 @@
                     btnElement.querySelector('span').innerText = nouveauxVotes;
                     
                     setTimeout(chargerMessages, 1000);
+                }
+            } catch(e) {
+                alert("Erreur réseau.");
+            }
+        }
+
+        // FONCTION DE SIGNALEMENT (Exigence Apple UGC)
+        async function signalerMessage(id) {
+            if (!confirm(translations[currentLang].report_confirm)) return;
+
+            try {
+                // On passe le statut "signale" à true sur Supabase
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .update({ signale: true })
+                    .eq('id', id);
+
+                if (error) {
+                    alert("Erreur lors du signalement.");
+                } else {
+                    alert(translations[currentLang].reported);
+                    // Disparition visuelle immédiate pour l'utilisateur
+                    const element = document.getElementById(`msg-${id}`);
+                    if (element) element.remove();
                 }
             } catch(e) {
                 alert("Erreur réseau.");
@@ -353,7 +394,8 @@
                     .insert([{ 
                         content: messageComplet, 
                         votes: 0, 
-                        theme: themeDetecte 
+                        theme: themeDetecte,
+                        signale: false // Initialisé proprement
                     }]);
 
                 if (error) {
