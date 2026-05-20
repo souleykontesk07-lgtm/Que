@@ -51,7 +51,6 @@
         #feed { padding: 20px; padding-bottom: 290px; }
         .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
         
-        /* Bouton de réaction 🎯 */
         .react-bar { display: flex; justify-content: flex-end; margin-top: 15px; font-size: 0.85em; }
         .react-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
         .react-btn:hover { border-color: var(--highlight); color: var(--highlight); }
@@ -121,6 +120,24 @@
         let currentLang = 'fr';
         let currentTabIdx = 0;
 
+        const REPERTOIRE_THEMES = {
+            "Politique": [
+                "politique", "gouvernement", "ministre", "loi", "vote", "élection", "président", 
+                "député", "état", "régime", "corruption", "pouvoir", "démocratie", "taxe", "parti",
+                "parlement", "sénat", "maire", "suffrage", "dictature", "oligarchie", "république"
+            ],
+            "Économie": [
+                "argent", "économie", "salaire", "prix", "inflation", "travail", "chômage", "euro", 
+                "banque", "entreprise", "marché", "achat", "coût", "finance", "impôt", "crise",
+                "bourse", "pouvoir d'achat", "patron", "pib", "riches", "pauvres", "capital", "fisc"
+            ],
+            "Culture": [
+                "culture", "art", "musique", "film", "cinéma", "livre", "artiste", "théâtre", 
+                "médias", "télé", "réseaux", "langue", "tradition", "histoire", "mode", "série",
+                "expo", "concert", "musée", "littérature", "peinture", "influenceur", "presse"
+            ]
+        };
+
         const translations = {
             fr: {
                 tagline: "Conscientiser l'élite, une vérité à la fois.",
@@ -149,7 +166,7 @@
                 m_title: "MANIFIESTO DE QUÉ",
                 m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.",
                 m_btn: "ENTRAR",
-                tabs: ["Política", "Économía", "Cultura", "Sociedad"],
+                tabs: ["Política", "Economía", "Cultura", "Sociedad"],
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
                 alert: "El silencio no conciencia a nadie.",
@@ -206,7 +223,6 @@
             chargerMessages();
         }
 
-        // LECTURE AVEC LE TRI DES VOTES (Influence de l'élite)
         async function chargerMessages() {
             const feed = document.getElementById('feed');
             if (!supabaseClient) {
@@ -216,11 +232,14 @@
 
             feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Lecture de l'ombre...</p>";
 
+            const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
+            const themeFiltre = nomsThemes[currentTabIdx];
+
             try {
-                // On trie d'abord par votes (descendant), puis par date pour classer l'élite
                 const { data, error } = await supabaseClient
                     .from('messages')
                     .select('*')
+                    .eq('theme', themeFiltre)
                     .order('votes', { ascending: false })
                     .order('created_at', { ascending: false })
                     .limit(50);
@@ -229,11 +248,10 @@
 
                 feed.innerHTML = "";
                 if (!data || data.length === 0) {
-                    feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucune vérité pour le moment.</p>";
+                    feed.innerHTML = `<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucune vérité en ${themeFiltre} pour le moment.</p>`;
                     return;
                 }
 
-                // Récupérer les messages déjà votés par l'utilisateur
                 let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
 
                 data.forEach(msg => {
@@ -244,7 +262,6 @@
                     textEl.innerText = msg.content;
                     card.appendChild(textEl);
 
-                    // Barre de réaction 🎯
                     const reactBar = document.createElement('div');
                     reactBar.className = 'react-bar';
                     
@@ -253,7 +270,6 @@
                     reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
                     reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
                     
-                    // Clic sur le bouton de réaction
                     reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
                     
                     reactBar.appendChild(reactBtn);
@@ -261,15 +277,13 @@
                     feed.appendChild(card);
                 });
             } catch(e) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur Supabase. Vérifiez la colonne votes.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de filtrage. Vérifiez la colonne theme sur Supabase.</p>";
             }
         }
 
-        // ACTION DE RÉACTION ANONYME (+1 SUR SUPABASE)
         async function reagirMessage(id, btnElement, currentVotes) {
             let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
             
-            // Si l'utilisateur a déjà voté, on bloque pour éviter le spam
             if (votedMessages.includes(id)) {
                 alert("Vous avez déjà propulsé cette vérité vers l'élite.");
                 return;
@@ -286,15 +300,12 @@
                 if (error) {
                     alert("Impossible d'enregistrer la réaction.");
                 } else {
-                    // Sauvegarde locale pour bloquer le double vote
                     votedMessages.push(id);
                     localStorage.setItem('que_votes', JSON.stringify(votedMessages));
                     
-                    // Mise à jour visuelle instantanée
                     btnElement.classList.add('voted');
                     btnElement.querySelector('span').innerText = nouveauxVotes;
                     
-                    // On recharge doucement après 1 seconde pour réorganiser le classement
                     setTimeout(chargerMessages, 1000);
                 }
             } catch(e) {
@@ -304,11 +315,34 @@
 
         async function publier() {
             const input = document.getElementById('message-input');
-            if(input.value.trim() === "") return alert(translations[currentLang].alert);
+            const texteMessage = input.value.trim();
             
-            const messageComplet = `${translations[currentLang].prefix} ${input.value}`;
+            if(texteMessage === "") return alert(translations[currentLang].alert);
+            
+            const messageComplet = `${translations[currentLang].prefix} ${texteMessage}`;
+            let themeDetecte = "Société";
+            
+            const texteNettoye = texteMessage.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            for (const [theme, motsCles] of Object.entries(REPERTOIRE_THEMES)) {
+                const correspondance = motsCles.some(mot => {
+                    const motNettoye = mot.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    const regex = new RegExp(`\\b${motNettoye}\\b`, 'i');
+                    return regex.test(texteNettoye);
+                });
+
+                if (correspondance) {
+                    themeDetecte = theme;
+                    break;
+                }
+            }
 
             if (!supabaseClient) {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerText = `[${themeDetecte}] ${messageComplet}`;
+                document.getElementById('feed').prepend(card);
                 input.value = "";
                 return;
             }
@@ -316,7 +350,11 @@
             try {
                 const { error } = await supabaseClient
                     .from('messages')
-                    .insert([{ content: messageComplet, votes: 0 }]); // On initialise explicitement à 0
+                    .insert([{ 
+                        content: messageComplet, 
+                        votes: 0, 
+                        theme: themeDetecte 
+                    }]);
 
                 if (error) {
                     alert("Erreur: " + error.message);
