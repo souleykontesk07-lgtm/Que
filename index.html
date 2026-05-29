@@ -3,198 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUÉ</title>
+    <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
-    <!-- Intégration du script Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        /* --- STYLES GÉNÉRAUX & THÈME SOMBRE --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg: #000000;
+            --card-bg: #0a0a0a;
+            --text: #E0E0E0;
+            --accent: #888888;
+            --border: #222222;
+            --highlight: #ffffff;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #000000;
-            color: #FFFFFF;
+        body.light-mode {
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --accent: #666666;
+            --border: #dddddd;
+            --highlight: #000000;
+        }
+
+        body { 
+            background-color: #16161a; /* Fond global pour combler les côtés sur PC */
+            color: var(--text); 
+            font-family: 'Courier New', Courier, monospace; 
+            transition: background 0.3s, color 0.3s;
+            margin: 0; padding: 0; line-height: 1.6;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             min-height: 100vh;
         }
 
-        /* --- EN-TÊTE --- */
-        header {
-            text-align: center;
-            padding: 20px;
-            border-bottom: 1px solid #222222;
+        /* --- CONTENEUR RESPONSIVE PRINCIPAL --- */
+        #app-container {
+            width: 100%;
+            height: 100vh;
+            background-color: var(--bg);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
-        header h1 {
-            font-size: 2rem;
-            letter-spacing: 2px;
-            font-weight: 900;
+        /* Style spécifique pour le Manifeste */
+        #manifesto-screen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg); z-index: 1000; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center; 
+            padding: 30px; text-align: center; box-sizing: border-box; 
         }
 
-        header .subtitle {
-            color: #888888;
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
+        .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
+        .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
 
-        /* --- CONTENU PRINCIPAL --- */
-        main {
-            padding: 15px;
+        .lang-switch { position: absolute; top: 20px; right: 20px; z-index: 1100; display: flex; gap: 5px; }
+        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; }
+        .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
+        
+        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; background: var(--bg); z-index: 100; }
+        h1 { letter-spacing: 10px; margin: 0; font-size: 2.5em; }
+        
+        .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--bg); shrink: 0; }
+        .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
+        .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
+        
+        /* Zone de défilement des messages autonome */
+        #feed { 
+            padding: 20px; 
             flex: 1;
+            overflow-y: auto;
+            padding-bottom: 30px; /* Nettoyé puisque la zone de saisie est relative ou absolue dans le conteneur */
         }
+        
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
+        
+        .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; font-size: 0.85em; gap: 10px; }
+        .react-btn, .report-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .react-btn:hover, .report-btn:hover { border-color: var(--highlight); color: var(--highlight); }
+        .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: bold; }
+        .report-btn { font-size: 0.9em; padding: 4px 8px; }
 
-        /* Boîte de publication */
-        .publish-box {
-            margin-bottom: 25px;
-        }
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 15px 20px; box-sizing: border-box; z-index: 200; }
+        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
+        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
+        
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        footer { margin-top: 8px; text-align: center; font-size: 0.6em; color: var(--accent); }
 
-        textarea {
-            width: 100%;
-            height: 100px;
-            background-color: #111111;
-            border: 1px solid #333333;
-            border-radius: 12px;
-            color: #FFFFFF;
-            padding: 12px;
-            font-size: 1rem;
-            resize: none;
-            outline: none;
-        }
-
-        textarea:focus {
-            border-color: #555555;
-        }
-
-        button {
-            width: 100%;
-            background-color: #FFFFFF;
-            color: #000000;
-            border: none;
-            padding: 12px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1rem;
-            margin-top: 10px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        button:hover {
-            background-color: #DDDDDD;
-        }
-
-        /* Flux de messages */
-        .feed-section h2 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #888888;
-        }
-
-        .loading {
-            text-align: center;
-            color: #555555;
-            margin-top: 20px;
-        }
-
-        /* Style des cartes messages (générées par app.js) */
-        .message-card {
-            background-color: #111111;
-            border: 1px solid #222222;
-            border-radius: 14px;
-            padding: 15px;
-            margin-bottom: 12px;
-        }
-
-        .message-text {
-            font-size: 1.05rem;
-            line-height: 1.4;
-            margin-bottom: 12px;
-        }
-
-        .message-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #666666;
-            font-size: 0.85rem;
-        }
-
-        .actions-btn {
-            display: flex;
-            gap: 15px;
-        }
-
-        .action-item {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* --- ADAPTATION GRAND ÉCRAN (PC / TABLETTE) --- */
+        /* --- ADAPTATION ÉCRANS ORDINATEURS / TABLETTES --- */
         @media screen and (min-width: 768px) {
-            body {
-                background-color: #16161a; /* Fond de page pour combler les côtés sur PC */
-                justify-content: center;
-                align-items: center;
-            }
-
-            #app {
-                width: 100%;
-                max-width: 460px;       /* Largeur maximale style smartphone */
-                height: 92vh;           /* Hauteur de l'application sur l'écran */
-                max-height: 850px;
-                background-color: #000000; /* Fond noir interne à l'application */
-                border-radius: 24px;    /* Bords arrondis de l'application moderne */
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); /* Effet d'ombre portée */
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;       /* Sécurise les débordements */
-            }
-
-            main {
-                overflow-y: auto;       /* Permet le défilement uniquement dans l'app */
+            #app-container {
+                max-width: 460px;       /* Ajustement taille smartphone */
+                height: 94vh;           /* Légère marge en haut/bas */
+                border-radius: 20px;    /* Coins arrondis */
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); /* Ombre premium */
+                border: 1px solid var(--border);
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Ce conteneur "app" permet de centrer le jeu sur les grands écrans -->
-    <div id="app">
-        
+    <!-- Structure englobante pour simuler le téléphone sur grand écran -->
+    <div id="app-container">
+
+        <div class="theme-switch">
+            <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
+        </div>
+
+        <div class="lang-switch">
+            <button id="btn-fr" class="lang-btn active" onclick="setLang('fr')">FR</button>
+            <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
+            <button id="btn-es" class="lang-btn" onclick="setLang('es')">ES</button>
+        </div>
+
+        <div id="manifesto-screen">
+            <h2 id="m-title">MANIFESTE DE QUÉ</h2>
+            <p id="m-text">Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.</p>
+            <button id="m-btn" class="main-btn" style="width: 200px;" onclick="entrerApp()">J'ENTRE</button>
+        </div>
+
         <header>
             <h1>QUÉ</h1>
-            <p class="subtitle">Exprimez-vous anonymement</p>
+            <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Conscientiser l'élite, une vérité à la fois.</p>
         </header>
 
-        <main>
-            <!-- Zone d'écriture d'un nouveau message -->
-            <section class="publish-box">
-                <textarea id="message-input" placeholder="Partagez vos pensées, posez une question... (Anonyme)" maxlength="280"></textarea>
-                <button id="send-btn">Publier</button>
-            </section>
+        <div class="tabs">
+            <div id="tab1" class="tab active" onclick="switchTab(0)">Politique</div>
+            <div id="tab2" class="tab" onclick="switchTab(1)">Économie</div>
+            <div id="tab3" class="tab" onclick="switchTab(2)">Culture</div>
+            <div id="tab4" class="tab" onclick="switchTab(3)">Société</div>
+        </div>
 
-            <!-- Flux de messages -->
-            <section class="feed-section">
-                <h2>Fil d'actualité</h2>
-                <div id="messages-feed">
-                    <!-- Les messages de Supabase s'afficheront ici dynamiquement -->
-                    <p class="loading">Chargement des messages...</p>
-                </div>
-            </section>
-        </main>
+        <div id="feed">
+            <p style='text-align:center; color:var(--accent); font-size:0.8em;'>L'application attend votre entrée...</p>
+        </div>
+
+        <div class="input-area" id="write-box">
+            <div class="input-container">
+                <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:5px;">Je ne dis pas que...</span>
+                <textarea id="message-input" rows="2" placeholder="..."></textarea>
+            </div>
+            <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
+            <button id="share-btn" class="main-btn" style="background:transparent; color:var(--accent); border:1px solid var(--border); margin-top:8px; font-size:0.75em; padding:8px;" onclick="partagerApp()">PARTAGER L'APPLICATION</button>
+            <footer>
+                <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer;">Légal / Legal / Aviso Legal</span>
+            </footer>
+        </div>
 
     </div>
 
-    <!-- Ton script logique d'application -->
-    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
+        
+        let supabaseClient = null;
+        let currentLang = 'fr';
+        let currentTabIdx = 0;
+
+        const REPERTOIRE_THEMES = {
+            "Politique": [
+                "politique", "gouvernement", "ministre", "loi", "vote", "élection", "président", 
+                "député", "état", "régime", "corruption", "pouvoir", "démocratie", "taxe", "parti",
+                "parlement", "sénat", "maire", "suffrage", "dictature", "oligarchie", "république"
+            ],
+            "Économie": [
+                "argent", "économie", "salaire", "prix", "inflation", "travail", "chômage", "euro", 
+                "banque", "entreprise", "marché", "achat", "coût", "finance", "impôt", "crise",
+                "bourse", "pouvoir d'achat", "patron", "pib", "riches", "pauvres", "capital", "fisc"
+            ],
+            "Culture": [
+                "culture", "art", "musique", "film", "cinéma", "livre", "artiste", "théâtre", 
+                "médias", "télé", "réseaux", "langue", "tradition", "histoire", "mode", "série",
+                "expo", "concert", "musée", "littérature", "peinture", "influenceur", "presse"
+            ]
+        };
+
+        const translations = {
+            fr: {
+                tagline: "Conscientiser l'élite, une vérité à la fois.",
+                m_title: "MANIFESTE DE QUÉ",
+                m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.",
+                m_btn: "J'ENTRE",
+                tabs: ["Politique", "Économie", "Culture", "Société"],
+                prefix: "Je ne dis pas que...",
+                pub_btn: "PUBLIER",
+                alert: "Le silence ne conscientise personne.",
+                legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.",
+                report_confirm: "Signaler ce contenu comme inapproprié ?",
+                reported: "Contenu signalé. Il sera examiné sous 24h."
+            },
+            en: {
+                tagline: "Raising awareness, one truth at a time.",
+                m_title: "THE QUÉ MANIFESTO",
+                m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.",
+                m_btn: "ENTER",
+                tabs: ["Politics", "Economy", "Culture", "Society"],
+                prefix: "I'm not saying that...",
+                pub_btn: "POST",
+                alert: "Silence raises no awareness.",
+                legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.",
+                report_confirm: "Report this content as inappropriate?",
+                reported: "Content reported. It will be reviewed within 24h."
+            },
+            es: {
+                tagline: "Concienciar a la élite, una verdad a la vez.",
+                m_title: "MANIFIESTO DE QUÉ",
+                m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.",
+                m_btn: "ENTRAR",
+                tabs: ["Política", "Economía", "Cultura", "Sociedad"],
+                prefix: "No digo que...",
+                pub_btn: "PUBLICAR",
+                alert: "El silencio no conciencia a nadie.",
+                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos.",
+                report_confirm: "¿Reportar este contenu como inapropiado?",
+                reported: "Contenido reportado. Será revisado en 24 horas."
+            }
+        };
+
+        // Calcule dynamiquement la hauteur de la boîte d'envoi pour éviter qu'elle ne cache les messages du fil
+        function ajusterPaddingFeed() {
+            const h = document.getElementById('write-box').offsetHeight;
+            document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
+        }
+
+        function entrerApp() {
+            document.getElementById('manifesto-screen').style.display = 'none';
+            try {
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                }
+            } catch(e) {}
+            chargerMessages();
+            setTimeout(ajusterPaddingFeed, 100);
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-${lang}`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            document.getElementById('tagline').innerText = translations[lang].tagline;
+            document.getElementById('m-title').innerText = translations[lang].m_title;
+            document.getElementById('m-text').innerHTML = translations[lang].m_text;
+            document.getElementById('m-btn').innerText = translations[lang].m_btn;
+            document.getElementById('pub-btn').innerText = translations[lang].pub_btn;
+            document.getElementById('prefix-ui').innerText = translations[lang].prefix;
+            document.getElementById('tab1').innerText = translations[lang].tabs[0];
+            document.getElementById('tab2').innerText = translations[lang].tabs[1];
+            document.getElementById('tab3').innerText = translations[lang].tabs[2];
+            document.getElementById('tab4').innerText = translations[lang].tabs[3];
+            
+            if(document.getElementById('manifesto-screen').style.display === 'none') {
+                chargerMessages();
+            }
+            setTimeout(ajusterPaddingFeed, 50);
+        }
+
+        function alertLegal() {
+            alert(translations[currentLang].legal);
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            icon.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        }
+
+        function switchTab(i) {
+            currentTabIdx = i;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[i].classList.add('active');
+            chargerMessages();
+        }
+
+        async function chargerMessages() {
+            const feed = document.getElementById('feed');
+            if (!supabaseClient) {
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode Démo local actif.</p>";
+                return;
+            }
+
+            feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Lecture de l'ombre...</p>";
+
+            const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
+            const themeFiltre = nomsThemes[currentTabIdx];
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .eq('theme', themeFiltre)
+                    .eq('signale', false) 
+                    .order('votes', { ascending: false })
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                feed.innerHTML = "";
+                if (!data || data.length === 0) {
+                    feed.innerHTML = `<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucune vérité en ${themeFiltre} pour le moment.</p>`;
+                    return;
+                }
+
+                let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
+
+                data.forEach(msg => {
+                    const card = document.createElement('div');
+                    card.className = 'post-card';
+                    card.id = `msg-${msg.id}`;
+                    
+                    const textEl = document.createElement('div');
+                    textEl.innerText = msg.content;
+                    card.appendChild(textEl);
+
+                    const reactBar = document.createElement('div');
+                    reactBar.className = 'react-bar';
+                    
+                    const reportBtn = document.createElement('button');
+                    reportBtn.className = 'report-btn';
+                    reportBtn.innerHTML = `🚩`;
+                    reportBtn.onclick = () => signalerMessage(msg.id);
+
+                    const reactBtn = document.createElement('button');
+                    const hasVoted = votedMessages.includes(msg.id);
+                    reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
+                    reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
+                    reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
+
+                    reactBar.appendChild(reportBtn);
+                    reactBar.appendChild(reactBtn);
+                    card.appendChild(reactBar);
+                    feed.appendChild(card);
+                });
+            } catch(e) {
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de filtrage. Vérifiez les colonnes sur Supabase.</p>";
+            }
+        }
+
+        async function reagirMessage(id, btnElement, currentVotes) {
+            let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
+            
+            if (votedMessages.includes(id)) {
+                alert("Vous avez déjà propulsé cette vérité vers l'élite.");
+                return;
+            }
+
+            const nouveauxVotes = currentVotes + 1;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .update({ votes: nouveauxVotes })
+                    .eq('id', id);
+
+                if (error) {
+                    alert("Impossible d'enregistrer la réaction.");
+                } else {
+                    votedMessages.push(id);
+                    localStorage.setItem('que_votes', JSON.stringify(votedMessages));
+                    
+                    btnElement.classList.add('voted');
+                    btnElement.querySelector('span').innerText = nouveauxVotes;
+                    
+                    setTimeout(chargerMessages, 1000);
+                }
+            } catch(e) {
+                alert("Erreur réseau.");
+            }
+        }
+
+        async function signalerMessage(id) {
+            if (!confirm(translations[currentLang].report_confirm)) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .update({ signale: true })
+                    .eq('id', id);
+
+                if (error) {
+                    alert("Erreur lors du signalement.");
+                } else {
+                    alert(translations[currentLang].reported);
+                    const element = document.getElementById(`msg-${id}`);
+                    if (element) element.remove();
+                }
+            } catch(e) {
+                alert("Erreur réseau.");
+            }
+        }
+
+        async function publier() {
+            const input = document.getElementById('message-input');
+            const texteMessage = input.value.trim();
+            
+            if(texteMessage === "") return alert(translations[currentLang].alert);
+            
+            const messageComplet = `${translations[currentLang].prefix} ${texteMessage}`;
+            let themeDetecte = "Société";
+            
+            const texteNettoye = texteMessage.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            for (const [theme, motsCles] of Object.entries(REPERTOIRE_THEMES)) {
+                const correspondance = motsCles.some(mot => {
+                    const motNettoye = mot.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    const regex = new RegExp(`\\b${motNettoye}\\b`, 'i');
+                    return regex.test(texteNettoye);
+                });
+
+                if (correspondance) {
+                    themeDetecte = theme;
+                    break;
+                }
+            }
+
+            if (!supabaseClient) {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerText = `[${themeDetecte}] ${messageComplet}`;
+                document.getElementById('feed').prepend(card);
+                input.value = "";
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert([{ 
+                        content: messageComplet, 
+                        votes: 0, 
+                        theme: themeDetecte,
+                        signale: false
+                    }]);
+
+                if (error) {
+                    alert("Erreur: " + error.message);
+                } else {
+                    input.value = "";
+                    chargerMessages();
+                }
+            } catch(e) {
+                alert("Erreur de publication.");
+            }
+        }
+
+        function partagerApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: "QUÉ",
+                    text: "Exprimez-vous anonymement sur QUÉ - La Voix de l'Ombre.",
+                    url: window.location.href
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Lien de l'application copié dans le presse-papiers !");
+            }
+        }
+    </script>
 </body>
 </html>
