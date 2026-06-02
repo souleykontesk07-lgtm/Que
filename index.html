@@ -6,62 +6,66 @@
     <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        /* --- THÈME SOMBRE PAR DÉFAUT --- */
+        /* --- THÈME SOMBRE PAR DÉFAUT (Contrastes adoucis pour les yeux) --- */
         :root {
-            --bg-hors-cadre: #111111; /* Fond pour l'espace vide sur grand écran */
+            --bg-hors-cadre: #0d0d0d; 
             --bg: #000000;
-            --card-bg: #0a0a0a;
-            --text: #E0E0E0;
-            --accent: #888888;
-            --border: #222222;
+            --card-bg: #121212;       /* Légèrement plus clair que le fond pour détacher la carte */
+            --text: #f0f0f0;          /* Blanc cassé pour éviter l'éblouissement */
+            --accent: #a0a0a0;        /* Gris plus clair pour la lisibilité des boutons secondaires */
+            --border: #262626;
             --highlight: #ffffff;
         }
 
         /* --- DÉTECTION AUTOMATIQUE DU MODE CLAIR DU TÉLÉPHONE --- */
         @media (prefers-color-scheme: light) {
             :root {
-                --bg-hors-cadre: #e0e0e0;
-                --bg: #f5f5f5;
+                --bg-hors-cadre: #e8e8e8;
+                --bg: #f9f9f9;
                 --card-bg: #ffffff;
-                --text: #1a1a1a;
+                --text: #1a1a1a;       /* Noir doux */
                 --accent: #666666;
-                --border: #dddddd;
+                --border: #e0e0e0;
                 --highlight: #000000;
             }
         }
 
         /* --- CLASSES DE FORÇAGE (Si l'utilisateur clique sur le bouton) --- */
         body.force-dark-mode {
-            --bg-hors-cadre: #111111;
+            --bg-hors-cadre: #0d0d0d;
             --bg: #000000;
-            --card-bg: #0a0a0a;
-            --text: #E0E0E0;
-            --accent: #888888;
-            --border: #222222;
+            --card-bg: #121212;
+            --text: #f0f0f0;
+            --accent: #a0a0a0;
+            --border: #262626;
             --highlight: #ffffff;
         }
 
         body.force-light-mode {
-            --bg-hors-cadre: #e0e0e0;
-            --bg: #f5f5f5;
+            --bg-hors-cadre: #e8e8e8;
+            --bg: #f9f9f9;
             --card-bg: #ffffff;
             --text: #1a1a1a;
             --accent: #666666;
-            --border: #dddddd;
+            --border: #e0e0e0;
             --highlight: #000000;
         }
 
-        /* --- APPLICATION DES COULEURS DYNAMIQUES AU BODY --- */
+        /* --- APPLICATION STYLE DE POLICE PAR DÉFAUT DU SYSTÈME --- */
         body { 
             background-color: var(--bg-hors-cadre); 
             color: var(--text); 
-            font-family: 'Courier New', Courier, monospace; 
+            /* Utilisation des polices natives Android / iOS pour un confort maximal */
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             transition: background 0.3s, color 0.3s;
-            margin: 0; padding: 0; line-height: 1.6;
+            margin: 0; padding: 0; 
+            line-height: 1.5; /* Interlignage confortable */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased; /* Lissage des polices sur iOS/Mac */
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* --- CONTENEUR RESPONSIVE PRINCIPAL --- */
@@ -85,18 +89,23 @@
             padding: 30px; text-align: center; box-sizing: border-box; 
         }
 
+        #m-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
         .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
         .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
 
         .lang-switch { position: absolute; top: 20px; right: 20px; z-index: 1100; display: flex; gap: 5px; }
-        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; }
+        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.75em; font-weight: bold; }
         .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
         
-        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; background: var(--bg); z-index: 100; }
-        h1 { letter-spacing: 10px; margin: 0; font-size: 2.5em; color: var(--highlight); }
+        header { padding: 25px 20px; border-bottom: 1px solid var(--border); text-align: center; background: var(--bg); z-index: 100; }
+        h1 { letter-spacing: 6px; margin: 0; font-size: 2.2em; font-weight: 800; color: var(--highlight); }
         
         .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--bg); shrink: 0; }
-        .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
+        .tab { padding: 15px 5px; text-align: center; font-size: 0.8em; font-weight: 600; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
         .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
         
         /* Zone de défilement des messages autonome */
@@ -108,28 +117,40 @@
             background-color: var(--bg);
         }
         
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
+        /* --- CARTES DE TEXTE AMÉLIORÉES --- */
+        .post-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            padding: 20px; 
+            margin-bottom: 16px; 
+            border-radius: 8px; 
+            position: relative;
+            font-size: 16px; /* Taille optimale recommandée pour la lecture mobile */
+            font-weight: 400;
+            word-wrap: break-word;
+        }
         
         .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; font-size: 0.85em; gap: 10px; }
-        .react-btn, .report-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .react-btn, .report-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 5px 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-family: inherit; }
         .react-btn:hover, .report-btn:hover { border-color: var(--highlight); color: var(--highlight); }
         .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: bold; }
-        .report-btn { font-size: 0.9em; padding: 4px 8px; }
+        .report-btn { font-size: 0.9em; padding: 5px 10px; }
 
         .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 15px 20px; box-sizing: border-box; z-index: 200; }
-        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
-        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
+        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; border-radius: 6px; }
+        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 15px; line-height: 1.4; }
         ::placeholder { color: var(--accent); opacity: 0.6; }
         
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        footer { margin-top: 8px; text-align: center; font-size: 0.6em; color: var(--accent); }
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 14px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; font-size: 0.9em; font-family: inherit; }
+        footer { margin-top: 8px; text-align: center; font-size: 0.65em; color: var(--accent); }
 
         /* --- ADAPTATION ÉCRANS ORDINATEURS / TABLETTES --- */
         @media screen and (min-width: 768px) {
             #app-container {
-                max-width: 460px;       /* Ajustement taille smartphone */
-                height: 94vh;           /* Légère marge en haut/bas */
-                border-radius: 20px;    /* Coins arrondis */
+                max-width: 460px;       
+                height: 94vh;           
+                border-radius: 20px;    
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); 
                 border: 1px solid var(--border);
             }
@@ -158,7 +179,7 @@
 
         <header>
             <h1>QUÉ</h1>
-            <p id="tagline" style="font-size: 0.7em; color: var(--accent); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Conscientiser l'élite, une vérité à la fois.</p>
+            <p id="tagline" style="font-size: 0.75em; color: var(--accent); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px;">Conscientiser l'élite, une vérité à la fois.</p>
         </header>
 
         <div class="tabs">
@@ -169,11 +190,11 @@
         </div>
 
         <div id="feed">
-            <button id="realtime-alert-btn" style="display:none; width: 100%; background: var(--highlight); color: var(--bg); font-family: inherit; font-weight: bold; border: none; font-size: 0.75em; padding: 10px; margin-bottom: 15px; border-radius: 4px; cursor: pointer; text-transform: uppercase;" onclick="clicAlerteNouveaute()">
+            <button id="realtime-alert-btn" style="display:none; width: 100%; background: var(--highlight); color: var(--bg); font-family: inherit; font-weight: bold; border: none; font-size: 0.8em; padding: 12px; margin-bottom: 15px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="clicAlerteNouveaute()">
                 ✨ Nouvelles vérités disponibles ! Voir
             </button>
 
-            <p style='text-align:center; color:var(--accent); font-size:0.8em;'>L'application attend votre entrée...</p>
+            <p style='text-align:center; color:var(--accent); font-size:0.85em;'>L'application attend votre entrée...</p>
         </div>
 
         <div class="input-area" id="write-box">
@@ -182,9 +203,9 @@
                 <textarea id="message-input" rows="2" placeholder="..."></textarea>
             </div>
             <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
-            <button id="share-btn" class="main-btn" style="background:transparent; color:var(--accent); border:1px solid var(--border); margin-top:8px; font-size:0.75em; padding:8px;" onclick="partagerApp()">PARTAGER L'APPLICATION</button>
+            <button id="share-btn" class="main-btn" style="background:transparent; color:var(--accent); border:1px solid var(--border); margin-top:8px; font-size:0.8em; padding:10px; border-radius: 6px;" onclick="partagerApp()">PARTAGER L'APPLICATION</button>
             <footer>
-                <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer;">Légal / Legal / Aviso Legal</span>
+                <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer; font-weight: 500;">Légal / Legal / Aviso Legal</span>
             </footer>
         </div>
 
@@ -411,7 +432,7 @@
         async function chargerMessages() {
             const feed = document.getElementById('feed');
             if (!supabaseClient) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Mode Démo local actif.</p>";
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Mode Démo local actif.</p>";
                 return;
             }
 
@@ -420,7 +441,7 @@
             feed.appendChild(alertBtn); 
 
             const loadingTxt = document.createElement('p');
-            loadingTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
+            loadingTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.85em;";
             loadingTxt.innerText = "Lecture de l'ombre...";
             feed.appendChild(loadingTxt);
 
@@ -444,7 +465,7 @@
 
                 if (!data || data.length === 0) {
                     const emptyTxt = document.createElement('p');
-                    emptyTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
+                    emptyTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.85em;";
                     emptyTxt.innerText = `Aucune vérité en ${themeFiltre} pour le moment.`;
                     feed.appendChild(emptyTxt);
                     return;
@@ -482,7 +503,7 @@
                 });
             } catch(e) {
                 const errTxt = document.createElement('p');
-                errTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
+                errTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.85em;";
                 errTxt.innerText = "Erreur réseau ou filtrage.";
                 feed.appendChild(errTxt);
             }
