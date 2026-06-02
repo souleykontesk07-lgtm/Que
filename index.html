@@ -75,7 +75,7 @@
             padding: 20px; 
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 30px; /* Nettoyé puisque la zone de saisie est relative ou absolue dans le conteneur */
+            padding-bottom: 30px;
         }
         
         .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
@@ -107,7 +107,6 @@
 </head>
 <body>
 
-    <!-- Structure englobante pour simuler le téléphone sur grand écran -->
     <div id="app-container">
 
         <div class="theme-switch">
@@ -139,6 +138,10 @@
         </div>
 
         <div id="feed">
+            <button id="realtime-alert-btn" style="display:none; width: 100%; background: var(--highlight); color: var(--bg); font-family: inherit; font-weight: bold; border: none; font-size: 0.75em; padding: 10px; margin-bottom: 15px; border-radius: 4px; cursor: pointer; text-transform: uppercase;" onclick="clicAlerteNouveaute()">
+                ✨ Nouvelles vérités disponibles ! Voir
+            </button>
+
             <p style='text-align:center; color:var(--accent); font-size:0.8em;'>L'application attend votre entrée...</p>
         </div>
 
@@ -219,14 +222,13 @@
                 tabs: ["Política", "Economía", "Cultura", "Sociedad"],
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
-                alert: "El silencio no conciencia a nadie.",
+                alert: "El silence no conciencia a nadie.",
                 legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos.",
                 report_confirm: "¿Reportar este contenu como inapropiado?",
                 reported: "Contenido reportado. Será revisado en 24 horas."
             }
         };
 
-        // Calcule dynamiquement la hauteur de la boîte d'envoi pour éviter qu'elle ne cache les messages du fil
         function ajusterPaddingFeed() {
             const h = document.getElementById('write-box').offsetHeight;
             document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
@@ -234,13 +236,56 @@
 
         function entrerApp() {
             document.getElementById('manifesto-screen').style.display = 'none';
+            localStorage.setItem('que_manifesto_lu', 'true'); 
             try {
                 if (window.supabase) {
                     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 }
             } catch(e) {}
             chargerMessages();
+            brancherEcouteTempsReel();
             setTimeout(ajusterPaddingFeed, 100);
+        }
+
+        // VÉRIFICATION AUTOMATIQUE AU RAFAÎCHISSEMENT (Mémoire)
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('que_manifesto_lu') === 'true') {
+                document.getElementById('manifesto-screen').style.display = 'none';
+                try {
+                    if (window.supabase) {
+                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    }
+                } catch(e) {}
+                chargerMessages();
+                brancherEcouteTempsReel();
+                setTimeout(ajusterPaddingFeed, 100);
+            }
+        });
+
+        // ÉCOUTE DES NOUVEAUTÉS EN TEMPS RÉEL VIA SUPABASE
+        function brancherEcouteTempsReel() {
+            if (!supabaseClient) return;
+
+            supabaseClient
+                .channel('table-db-changes')
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'messages' },
+                    (payload) => {
+                        const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
+                        const themeFiltre = nomsThemes[currentTabIdx];
+
+                        if (payload.new && payload.new.theme === themeFiltre && payload.new.signale === false) {
+                            document.getElementById('realtime-alert-btn').style.display = 'block';
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        function clicAlerteNouveaute() {
+            document.getElementById('realtime-alert-btn').style.display = 'none';
+            chargerMessages();
         }
 
         function setLang(lang) {
@@ -280,6 +325,7 @@
             currentTabIdx = i;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab')[i].classList.add('active');
+            document.getElementById('realtime-alert-btn').style.display = 'none'; 
             chargerMessages();
         }
 
@@ -290,7 +336,17 @@
                 return;
             }
 
-            feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Lecture de l'ombre...</p>";
+            // On s'assure de ne pas écraser le bouton d'alerte s'il est affiché
+            const alertBtn = document.getElementById('realtime-alert-btn');
+            const alertBtnVisible = alertBtn.style.display === 'block';
+
+            feed.innerHTML = "";
+            feed.appendChild(alertBtn); // On remet le bouton à sa place
+
+            const loadingTxt = document.createElement('p');
+            loadingTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
+            loadingTxt.innerText = "Lecture de l'ombre...";
+            feed.appendChild(loadingTxt);
 
             const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
             const themeFiltre = nomsThemes[currentTabIdx];
@@ -307,9 +363,15 @@
 
                 if (error) throw error;
 
+                // Nettoyage pour insérer les cartes, mais préservation du bouton
                 feed.innerHTML = "";
+                feed.appendChild(alertBtn);
+
                 if (!data || data.length === 0) {
-                    feed.innerHTML = `<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Aucune vérité en ${themeFiltre} pour le moment.</p>`;
+                    const emptyTxt = document.createElement('p');
+                    emptyTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
+                    emptyTxt.innerText = `Aucune vérité en ${themeFiltre} pour le moment.`;
+                    feed.appendChild(emptyTxt);
                     return;
                 }
 
@@ -344,7 +406,10 @@
                     feed.appendChild(card);
                 });
             } catch(e) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.8em;'>Erreur de filtrage. Vérifiez les colonnes sur Supabase.</p>";
+                const errTxt = document.createElement('p');
+                errTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
+                errTxt.innerText = "Erreur réseau ou filtrage.";
+                feed.appendChild(errTxt);
             }
         }
 
