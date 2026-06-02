@@ -8,6 +8,7 @@
     <style>
         /* --- THÈME SOMBRE PAR DÉFAUT --- */
         :root {
+            --bg-hors-cadre: #111111; /* Fond pour l'espace vide sur grand écran */
             --bg: #000000;
             --card-bg: #0a0a0a;
             --text: #E0E0E0;
@@ -19,6 +20,7 @@
         /* --- DÉTECTION AUTOMATIQUE DU MODE CLAIR DU TÉLÉPHONE --- */
         @media (prefers-color-scheme: light) {
             :root {
+                --bg-hors-cadre: #e0e0e0;
                 --bg: #f5f5f5;
                 --card-bg: #ffffff;
                 --text: #1a1a1a;
@@ -30,6 +32,7 @@
 
         /* --- CLASSES DE FORÇAGE (Si l'utilisateur clique sur le bouton) --- */
         body.force-dark-mode {
+            --bg-hors-cadre: #111111;
             --bg: #000000;
             --card-bg: #0a0a0a;
             --text: #E0E0E0;
@@ -39,6 +42,7 @@
         }
 
         body.force-light-mode {
+            --bg-hors-cadre: #e0e0e0;
             --bg: #f5f5f5;
             --card-bg: #ffffff;
             --text: #1a1a1a;
@@ -47,8 +51,9 @@
             --highlight: #000000;
         }
 
+        /* --- APPLICATION DES COULEURS DYNAMIQUES AU BODY --- */
         body { 
-            background-color: #16161a; /* Fond global pour combler les côtés sur PC */
+            background-color: var(--bg-hors-cadre); 
             color: var(--text); 
             font-family: 'Courier New', Courier, monospace; 
             transition: background 0.3s, color 0.3s;
@@ -64,6 +69,7 @@
             width: 100%;
             height: 100vh;
             background-color: var(--bg);
+            color: var(--text);
             position: relative;
             display: flex;
             flex-direction: column;
@@ -87,7 +93,7 @@
         .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
         
         header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; background: var(--bg); z-index: 100; }
-        h1 { letter-spacing: 10px; margin: 0; font-size: 2.5em; }
+        h1 { letter-spacing: 10px; margin: 0; font-size: 2.5em; color: var(--highlight); }
         
         .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--bg); shrink: 0; }
         .tab { padding: 15px 5px; text-align: center; font-size: 0.65em; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
@@ -99,9 +105,10 @@
             flex: 1;
             overflow-y: auto;
             padding-bottom: 30px;
+            background-color: var(--bg);
         }
         
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 20px; margin-bottom: 20px; border-radius: 5px; position: relative; }
         
         .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; font-size: 0.85em; gap: 10px; }
         .react-btn, .report-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 4px 10px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
@@ -112,6 +119,7 @@
         .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 15px 20px; box-sizing: border-box; z-index: 200; }
         .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
         textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 14px; }
+        ::placeholder { color: var(--accent); opacity: 0.6; }
         
         .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         footer { margin-top: 8px; text-align: center; font-size: 0.6em; color: var(--accent); }
@@ -122,7 +130,7 @@
                 max-width: 460px;       /* Ajustement taille smartphone */
                 height: 94vh;           /* Légère marge en haut/bas */
                 border-radius: 20px;    /* Coins arrondis */
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); /* Ombre premium */
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); 
                 border: 1px solid var(--border);
             }
         }
@@ -222,7 +230,7 @@
                 alert: "Le silence ne conscientise personne.",
                 legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.",
                 report_confirm: "Signaler ce contenu comme inapproprié ?",
-                reported: "Contenu signalé. Il sera examinez sous 24h."
+                reported: "Contenu signalé. Il sera examiné sous 24h."
             },
             en: {
                 tagline: "Raising awareness, one truth at a time.",
@@ -257,12 +265,10 @@
             document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
         }
 
-        // RECONNAISSANCE DU SYSTÈME (FONCTION MUTUALISÉE)
         function obtenirSystemeEstClair() {
             return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
         }
 
-        // SYNCHRONISATION DE L'ICÔNE DU THÈME
         function rafraichirIconeTheme() {
             const icon = document.getElementById('theme-icon');
             const systemeEstClair = obtenirSystemeEstClair();
@@ -272,7 +278,6 @@
             icon.innerText = estLumineux ? '☀️' : '🌙';
         }
 
-        // BASCULE INTELLIGENTE DU THÈME
         function toggleTheme() {
             const systemeEstClair = obtenirSystemeEstClair();
             const themeForce = localStorage.getItem('que_theme_force');
@@ -280,22 +285,16 @@
             const estActuellementClair = themeForce === 'light' || (!themeForce && systemeEstClair);
 
             if (estActuellementClair) {
-                // On passe au sombre
                 document.body.classList.remove('force-light-mode');
                 document.body.classList.add('force-dark-mode');
-                
-                // Si le système est DÉJÀ sombre, inutile de garder une mémoire forcée
                 if (!systemeEstClair) {
                     localStorage.removeItem('que_theme_force');
                 } else {
                     localStorage.setItem('que_theme_force', 'dark');
                 }
             } else {
-                // On passe au clair
                 document.body.classList.remove('force-dark-mode');
                 document.body.classList.add('force-light-mode');
-                
-                // Si le système est DÉJÀ clair, inutile de garder une mémoire forcée
                 if (systemeEstClair) {
                     localStorage.removeItem('que_theme_force');
                 } else {
@@ -318,7 +317,6 @@
             setTimeout(ajusterPaddingFeed, 100);
         }
 
-        // INITIALISATION (ÉCOUTE DES CHANGEMENTS EN DIRECT DU SMARTPHONE)
         window.addEventListener('DOMContentLoaded', () => {
             const themeForce = localStorage.getItem('que_theme_force');
             if (themeForce === 'light') {
@@ -328,10 +326,8 @@
             }
             rafraichirIconeTheme();
 
-            // Écouteur en temps réel : si l'utilisateur change le mode de son téléphone dans ses raccourcis
             if (window.matchMedia) {
                 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
-                    // On ne réagit au changement système QUE si l'utilisateur n'a pas bloqué un thème manuellement
                     if (!localStorage.getItem('que_theme_force')) {
                         rafraichirIconeTheme();
                     }
