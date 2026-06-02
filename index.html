@@ -6,6 +6,7 @@
     <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
     <style>
+        /* --- THÈME SOMBRE PAR DÉFAUT --- */
         :root {
             --bg: #000000;
             --card-bg: #0a0a0a;
@@ -15,7 +16,29 @@
             --highlight: #ffffff;
         }
 
-        body.light-mode {
+        /* --- DÉTECTION AUTOMATIQUE DU MODE CLAIR DU TÉLÉPHONE --- */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f5f5f5;
+                --card-bg: #ffffff;
+                --text: #1a1a1a;
+                --accent: #666666;
+                --border: #dddddd;
+                --highlight: #000000;
+            }
+        }
+
+        /* --- CLASSES DE FORÇAGE (Si l'utilisateur clique sur le bouton) --- */
+        body.force-dark-mode {
+            --bg: #000000;
+            --card-bg: #0a0a0a;
+            --text: #E0E0E0;
+            --accent: #888888;
+            --border: #222222;
+            --highlight: #ffffff;
+        }
+
+        body.force-light-mode {
             --bg: #f5f5f5;
             --card-bg: #ffffff;
             --text: #1a1a1a;
@@ -223,8 +246,8 @@
                 prefix: "No digo que...",
                 pub_btn: "PUBLICAR",
                 alert: "El silence no conciencia a nadie.",
-                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado por GitHub. Solo para adultos.",
-                report_confirm: "¿Reportar este contenu como inapropiado?",
+                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.",
+                report_confirm: "¿Reportar este contenu comme inapropiado?",
                 reported: "Contenido reportado. Será revisado en 24 horas."
             }
         };
@@ -232,6 +255,28 @@
         function ajusterPaddingFeed() {
             const h = document.getElementById('write-box').offsetHeight;
             document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
+        }
+
+        // SYNCHRONISATION DE L'ICÔNE DU THÈME (SOLEIL OU LUNE)
+        function rafraichirIconeTheme() {
+            const icon = document.getElementById('theme-icon');
+            const estLumineux = getComputedStyle(document.body).getPropertyValue('--bg').trim() === '#f5f5f5';
+            icon.innerText = estLumineux ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const estLumineux = getComputedStyle(document.body).getPropertyValue('--bg').trim() === '#f5f5f5';
+
+            if (estLumineux) {
+                document.body.classList.remove('force-light-mode');
+                document.body.classList.add('force-dark-mode');
+                localStorage.setItem('que_theme_force', 'dark');
+            } else {
+                document.body.classList.remove('force-dark-mode');
+                document.body.classList.add('force-light-mode');
+                localStorage.setItem('que_theme_force', 'light');
+            }
+            rafraichirIconeTheme();
         }
 
         function entrerApp() {
@@ -247,8 +292,16 @@
             setTimeout(ajusterPaddingFeed, 100);
         }
 
-        // VÉRIFICATION AUTOMATIQUE AU RAFAÎCHISSEMENT (Mémoire)
+        // INITIALISATION (MÉMOIRE + CONFIGURATION THÈME INITIAL)
         window.addEventListener('DOMContentLoaded', () => {
+            const themeForce = localStorage.getItem('que_theme_force');
+            if (themeForce === 'light') {
+                document.body.classList.add('force-light-mode');
+            } else if (themeForce === 'dark') {
+                document.body.classList.add('force-dark-mode');
+            }
+            rafraichirIconeTheme();
+
             if (localStorage.getItem('que_manifesto_lu') === 'true') {
                 document.getElementById('manifesto-screen').style.display = 'none';
                 try {
@@ -262,7 +315,6 @@
             }
         });
 
-        // ÉCOUTE DES NOUVEAUTÉS EN TEMPS RÉEL VIA SUPABASE
         function brancherEcouteTempsReel() {
             if (!supabaseClient) return;
 
@@ -308,17 +360,12 @@
             if(document.getElementById('manifesto-screen').style.display === 'none') {
                 chargerMessages();
             }
+            rafraichirIconeTheme();
             setTimeout(ajusterPaddingFeed, 50);
         }
 
         function alertLegal() {
             alert(translations[currentLang].legal);
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            const icon = document.getElementById('theme-icon');
-            icon.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
         }
 
         function switchTab(i) {
@@ -336,12 +383,9 @@
                 return;
             }
 
-            // On s'assure de ne pas écraser le bouton d'alerte s'il est affiché
             const alertBtn = document.getElementById('realtime-alert-btn');
-            const alertBtnVisible = alertBtn.style.display === 'block';
-
             feed.innerHTML = "";
-            feed.appendChild(alertBtn); // On remet le bouton à sa place
+            feed.appendChild(alertBtn); 
 
             const loadingTxt = document.createElement('p');
             loadingTxt.style.cssText = "text-align:center; color:var(--accent); font-size:0.8em;";
@@ -363,7 +407,6 @@
 
                 if (error) throw error;
 
-                // Nettoyage pour insérer les cartes, mais préservation du bouton
                 feed.innerHTML = "";
                 feed.appendChild(alertBtn);
 
