@@ -222,7 +222,7 @@
                 alert: "Le silence ne conscientise personne.",
                 legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.",
                 report_confirm: "Signaler ce contenu comme inapproprié ?",
-                reported: "Contenu signalé. Il sera examiné sous 24h."
+                reported: "Contenu signalé. Il sera examinez sous 24h."
             },
             en: {
                 tagline: "Raising awareness, one truth at a time.",
@@ -257,30 +257,50 @@
             document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
         }
 
-        // SYNCHRONISATION DE L'ICÔNE DU THÈME (DÉTECTION SYSTÈME ROBUSTE)
+        // RECONNAISSANCE DU SYSTÈME (FONCTION MUTUALISÉE)
+        function obtenirSystemeEstClair() {
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        }
+
+        // SYNCHRONISATION DE L'ICÔNE DU THÈME
         function rafraichirIconeTheme() {
             const icon = document.getElementById('theme-icon');
-            const systemeEstClair = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+            const systemeEstClair = obtenirSystemeEstClair();
             const themeForce = localStorage.getItem('que_theme_force');
 
             const estLumineux = themeForce === 'light' || (!themeForce && systemeEstClair);
             icon.innerText = estLumineux ? '☀️' : '🌙';
         }
 
+        // BASCULE INTELLIGENTE DU THÈME
         function toggleTheme() {
-            const systemeEstClair = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+            const systemeEstClair = obtenirSystemeEstClair();
             const themeForce = localStorage.getItem('que_theme_force');
             
             const estActuellementClair = themeForce === 'light' || (!themeForce && systemeEstClair);
 
             if (estActuellementClair) {
+                // On passe au sombre
                 document.body.classList.remove('force-light-mode');
                 document.body.classList.add('force-dark-mode');
-                localStorage.setItem('que_theme_force', 'dark');
+                
+                // Si le système est DÉJÀ sombre, inutile de garder une mémoire forcée
+                if (!systemeEstClair) {
+                    localStorage.removeItem('que_theme_force');
+                } else {
+                    localStorage.setItem('que_theme_force', 'dark');
+                }
             } else {
+                // On passe au clair
                 document.body.classList.remove('force-dark-mode');
                 document.body.classList.add('force-light-mode');
-                localStorage.setItem('que_theme_force', 'light');
+                
+                // Si le système est DÉJÀ clair, inutile de garder une mémoire forcée
+                if (systemeEstClair) {
+                    localStorage.removeItem('que_theme_force');
+                } else {
+                    localStorage.setItem('que_theme_force', 'light');
+                }
             }
             rafraichirIconeTheme();
         }
@@ -298,7 +318,7 @@
             setTimeout(ajusterPaddingFeed, 100);
         }
 
-        // INITIALISATION (MÉMOIRE + CONFIGURATION THÈME INITIAL)
+        // INITIALISATION (ÉCOUTE DES CHANGEMENTS EN DIRECT DU SMARTPHONE)
         window.addEventListener('DOMContentLoaded', () => {
             const themeForce = localStorage.getItem('que_theme_force');
             if (themeForce === 'light') {
@@ -307,6 +327,16 @@
                 document.body.classList.add('force-dark-mode');
             }
             rafraichirIconeTheme();
+
+            // Écouteur en temps réel : si l'utilisateur change le mode de son téléphone dans ses raccourcis
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
+                    // On ne réagit au changement système QUE si l'utilisateur n'a pas bloqué un thème manuellement
+                    if (!localStorage.getItem('que_theme_force')) {
+                        rafraichirIconeTheme();
+                    }
+                });
+            }
 
             if (localStorage.getItem('que_manifesto_lu') === 'true') {
                 document.getElementById('manifesto-screen').style.display = 'none';
