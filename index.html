@@ -257,17 +257,23 @@
             document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
         }
 
-        // SYNCHRONISATION DE L'ICÔNE DU THÈME (SOLEIL OU LUNE)
+        // SYNCHRONISATION DE L'ICÔNE DU THÈME (DÉTECTION SYSTÈME ROBUSTE)
         function rafraichirIconeTheme() {
             const icon = document.getElementById('theme-icon');
-            const estLumineux = getComputedStyle(document.body).getPropertyValue('--bg').trim() === '#f5f5f5';
+            const systemeEstClair = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+            const themeForce = localStorage.getItem('que_theme_force');
+
+            const estLumineux = themeForce === 'light' || (!themeForce && systemeEstClair);
             icon.innerText = estLumineux ? '☀️' : '🌙';
         }
 
         function toggleTheme() {
-            const estLumineux = getComputedStyle(document.body).getPropertyValue('--bg').trim() === '#f5f5f5';
+            const systemeEstClair = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+            const themeForce = localStorage.getItem('que_theme_force');
+            
+            const estActuellementClair = themeForce === 'light' || (!themeForce && systemeEstClair);
 
-            if (estLumineux) {
+            if (estActuellementClair) {
                 document.body.classList.remove('force-light-mode');
                 document.body.classList.add('force-dark-mode');
                 localStorage.setItem('que_theme_force', 'dark');
