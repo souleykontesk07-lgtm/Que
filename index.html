@@ -109,7 +109,6 @@
             background-color: var(--bg);
         }
         
-        /* --- CARTES DE TEXTE --- */
         .post-card { 
             background: var(--card-bg); 
             border: 1px solid var(--border); 
@@ -123,7 +122,6 @@
             word-wrap: break-word;
         }
 
-        /* Signature discrète ajoutée lors de l'export d'image */
         .card-signature {
             display: none;
             margin-top: 15px;
@@ -214,7 +212,6 @@
 
     </div>
 
-    <!-- Scripts CDN nécessaires : Supabase ET html2canvas pour la capture visuelle -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -224,69 +221,18 @@
         
         let supabaseClient = null;
         let currentLang = 'fr';
-        let currentTabIdx = 0;
+        let currentTabIdx = 0; // Sera écrasé par la valeur sauvegardée au chargement
 
         const REPERTOIRE_THEMES = {
-            "Politique": [
-                "politique", "gouvernement", "ministre", "loi", "vote", "élection", "président", 
-                "député", "état", "régime", "corruption", "pouvoir", "démocratie", "taxe", "parti",
-                "parlement", "sénat", "maire", "suffrage", "dictature", "oligarchie", "république"
-            ],
-            "Économie": [
-                "argent", "économie", "salaire", "prix", "inflation", "travail", "chômage", "euro", 
-                "banque", "entreprise", "marché", "achat", "coût", "finance", "impôt", "crise",
-                "bourse", "pouvoir d'achat", "patron", "pib", "riches", "pauvres", "capital", "fisc"
-            ],
-            "Culture": [
-                "culture", "art", "musique", "film", "cinéma", "livre", "artiste", "théâtre", 
-                "médias", "télé", "réseaux", "langue", "tradition", "histoire", "mode", "série",
-                "expo", "concert", "musée", "littérature", "peinture", "influenceur", "presse"
-            ]
+            "Politique": ["politique", "gouvernement", "ministre", "loi", "vote", "élection", "président", "député", "état", "régime", "corruption", "pouvoir", "démocratie", "taxe", "parti", "parlement", "sénat", "maire", "suffrage", "dictature", "oligarchie", "république"],
+            "Économie": ["argent", "économie", "salaire", "prix", "inflation", "travail", "chômage", "euro", "banque", "entreprise", "marché", "achat", "coût", "finance", "impôt", "crise", "bourse", "pouvoir d'achat", "patron", "pib", "riches", "pauvres", "capital", "fisc"],
+            "Culture": ["culture", "art", "musique", "film", "cinéma", "livre", "artiste", "théâtre", "médias", "télé", "réseaux", "langue", "tradition", "histoire", "mode", "série", "expo", "concert", "musée", "littérature", "peinture", "influenceur", "presse"]
         };
 
         const translations = {
-            fr: {
-                tagline: "Conscientiser l'élite, une vérité à la fois.",
-                m_title: "MANIFESTE DE QUÉ",
-                m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.",
-                m_btn: "J'ENTRE",
-                tabs: ["Politique", "Économie", "Culture", "Société"],
-                prefix: "Je ne dis pas que...",
-                pub_btn: "PUBLIER",
-                alert: "Le silence ne conscientise personne.",
-                legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.",
-                report_confirm: "Signaler ce contenu comme inapproprié ?",
-                reported: "Contenu signalé. Il sera examiné sous 24h.",
-                share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place."
-            },
-            en: {
-                tagline: "Raising awareness, one truth at a time.",
-                m_title: "THE QUÉ MANIFESTO",
-                m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.",
-                m_btn: "ENTER",
-                tabs: ["Politics", "Economy", "Culture", "Society"],
-                prefix: "I'm not saying that...",
-                pub_btn: "POST",
-                alert: "Silence raises no awareness.",
-                legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.",
-                report_confirm: "Report this content as inappropriate?",
-                reported: "Content reported. It will be reviewed within 24h.",
-                share_vis_err: "Visual share failed. Image downloaded instead."
-            },
-            es: {
-                tagline: "Concienciar a la élite, una verdad a la vez.",
-                m_title: "MANIFIESTO DE QUÉ",
-                m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.",
-                m_btn: "ENTRAR",
-                tabs: ["Política", "Economía", "Cultura", "Sociedad"],
-                prefix: "No digo que...",
-                pub_btn: "PUBLICAR",
-                alert: "El silence no conciencia a nadie.",
-                legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para autographs.",
-                report_confirm: "¿Reportar este contenido como inapropiado?",
-                reported: "Contenido reportado. Será revisado en 24 horas.",
-                share_vis_err: "Error al compartir imagen. Descargada en su lugar."
-            }
+            fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Signaler ce contenu comme inapproprié ?", reported: "Contenu signalé. Il sera examiné sous 24h.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place." },
+            en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Report this content as inappropriate?", reported: "Content reported. It will be reviewed within 24h.", share_vis_err: "Visual share failed. Image downloaded instead." },
+            es: { tagline: "Concienciar a la élite, una verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.", report_confirm: "¿Reportar este contenido como inapropiado?", reported: "Contenido reportado. Será revisado en 24 horas.", share_vis_err: "Error al compartir imagen. Descargada en su lugar." }
         };
 
         function ajusterPaddingFeed() {
@@ -302,7 +248,6 @@
             const icon = document.getElementById('theme-icon');
             const systemeEstClair = obtenirSystemeEstClair();
             const themeForce = localStorage.getItem('que_theme_force');
-
             const estLumineux = themeForce === 'light' || (!themeForce && systemeEstClair);
             icon.innerText = estLumineux ? '☀️' : '🌙';
         }
@@ -338,10 +283,22 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // 1. Restauration immédiate du thème visuel (clair/sombre) pour éviter les sauts visuels
             const themeForce = localStorage.getItem('que_theme_force');
             if (themeForce === 'light') document.body.classList.add('force-light-mode');
             else if (themeForce === 'dark') document.body.classList.add('force-dark-mode');
             rafraichirIconeTheme();
+
+            // 2. Restauration de l'activité (l'onglet thématique sélectionné)
+            const savedTab = localStorage.getItem('que_current_tab_idx');
+            if (savedTab !== null) {
+                currentTabIdx = parseInt(savedTab, 10);
+                // Mettre à jour visuellement les classes d'onglets actifs
+                document.querySelectorAll('.tab').forEach((t, idx) => {
+                    if (idx === currentTabIdx) t.classList.add('active');
+                    else t.classList.remove('active');
+                });
+            }
 
             if (localStorage.getItem('que_manifesto_lu') === 'true') {
                 document.getElementById('manifesto-screen').style.display = 'none';
@@ -400,6 +357,9 @@
 
         function switchTab(i) {
             currentTabIdx = i;
+            // NOUVEAU : Sauvegarde de l'activité/onglet sélectionné à chaque changement
+            localStorage.setItem('que_current_tab_idx', i);
+
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab')[i].classList.add('active');
             document.getElementById('realtime-alert-btn').style.display = 'none'; 
@@ -450,7 +410,6 @@
                     textEl.innerText = msg.content;
                     card.appendChild(textEl);
 
-                    // Signature secrète invisible à l'écran, visible uniquement sur la photo finale
                     const signatureEl = document.createElement('div');
                     signatureEl.className = 'card-signature';
                     signatureEl.innerText = `— Partagé depuis l'ombre via QUÉ`;
@@ -464,7 +423,6 @@
                     reportBtn.innerHTML = `🚩`;
                     reportBtn.onclick = () => signalerMessage(msg.id);
 
-                    // NOUVEAU : Le bouton de partage visuel (appareil photo)
                     const shareVisionBtn = document.createElement('button');
                     shareVisionBtn.className = 'share-vision-btn';
                     shareVisionBtn.innerHTML = `📸`;
@@ -485,32 +443,27 @@
             } catch(e) {}
         }
 
-        // --- NOUVELLE FONCTION DE CAPTURE ET DE PARTAGE VISUEL ---
         function capturerEtPartagerCard(id) {
             const card = document.getElementById(`msg-${id}`);
             if (!card) return;
 
-            // 1. On cache temporairement la barre de boutons d'action et on montre la signature secrète
             const reactBar = card.querySelector('.react-bar');
             const signature = card.querySelector('.card-signature');
             if (reactBar) reactBar.style.display = 'none';
             if (signature) signature.style.display = 'block';
 
-            // 2. html2canvas prend la carte en photo en respectant les couleurs CSS du thème
             html2canvas(card, {
                 backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg'),
-                scale: 2, // Double la qualité de l'image pour un rendu ultra net sur Instagram/X
+                scale: 2, 
                 logging: false,
                 useCORS: true
             }).then(canvas => {
-                // Rétablir l'affichage normal sur l'application immédiatement après la photo
                 if (reactBar) reactBar.style.display = 'flex';
                 if (signature) signature.style.display = 'none';
 
                 canvas.toBlob(async (blob) => {
                     const fichierImage = new File([blob], `QUE-Verite-${id}.png`, { type: 'image/png' });
                     
-                    // Vérifier si le smartphone accepte le partage direct de fichiers d'images
                     if (navigator.canShare && navigator.canShare({ files: [fichierImage] })) {
                         try {
                             await navigator.share({
@@ -522,7 +475,6 @@
                             telechargerImageFallback(canvas, id);
                         }
                     } else {
-                        // Si le navigateur ne gère pas le partage natif d'images (ex: certains navigateurs PC), on télécharge le fichier
                         telechargerImageFallback(canvas, id);
                     }
                 });
