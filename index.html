@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
     <style>
@@ -10,22 +10,22 @@
         :root {
             --bg-hors-cadre: #0d0d0d; 
             --bg: #000000;
-            --card-bg: #121212;       
-            --text: #f0f0f0;          
-            --accent: #a0a0a0;        
-            --border: #262626;
+            --card-bg: #0b0b0b;       
+            --text: #e5e5e5;          
+            --accent: #737373;        
+            --border: #1e1e1e;
             --highlight: #ffffff;
         }
 
         /* --- DÉTECTION AUTOMATIQUE DU MODE CLAIR DU TÉLÉPHONE --- */
         @media (prefers-color-scheme: light) {
             :root {
-                --bg-hors-cadre: #e8e8e8;
-                --bg: #f9f9f9;
+                --bg-hors-cadre: #f5f5f5;
+                --bg: #fafafa;
                 --card-bg: #ffffff;
-                --text: #1a1a1a;       
-                --accent: #666666;
-                --border: #e0e0e0;
+                --text: #171717;       
+                --accent: #8a8a8a;
+                --border: #e5e5e5;
                 --highlight: #000000;
             }
         }
@@ -34,30 +34,29 @@
         body.force-dark-mode {
             --bg-hors-cadre: #0d0d0d;
             --bg: #000000;
-            --card-bg: #121212;
-            --text: #f0f0f0;
-            --accent: #a0a0a0;
-            --border: #262626;
+            --card-bg: #0b0b0b;
+            --text: #e5e5e5;
+            --accent: #737373;
+            --border: #1e1e1e;
             --highlight: #ffffff;
         }
 
         body.force-light-mode {
-            --bg-hors-cadre: #e8e8e8;
-            --bg: #f9f9f9;
+            --bg-hors-cadre: #f5f5f5;
+            --bg: #fafafa;
             --card-bg: #ffffff;
-            --text: #1a1a1a;
-            --accent: #666666;
-            --border: #e0e0e0;
+            --text: #171717;
+            --accent: #8a8a8a;
+            --border: #e5e5e5;
             --highlight: #000000;
         }
 
         body { 
             background-color: var(--bg-hors-cadre); 
             color: var(--text); 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             transition: background 0.3s, color 0.3s;
             margin: 0; padding: 0; 
-            line-height: 1.5; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -85,24 +84,53 @@
             padding: 30px; text-align: center; box-sizing: border-box; 
         }
 
-        #m-text { font-size: 1.1em; line-height: 1.6; }
+        #m-text { font-size: 1.1em; line-height: 1.6; letter-spacing: 0.2px; color: var(--text); }
 
-        .theme-switch { position: absolute; top: 20px; left: 20px; z-index: 1100; }
-        .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2em; cursor: pointer; padding: 5px; border-radius: 50%; }
-
-        .lang-switch { position: absolute; top: 20px; right: 20px; z-index: 1100; display: flex; gap: 5px; }
-        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.75em; font-weight: bold; }
-        .lang-btn.active { color: var(--highlight); border-color: var(--highlight); }
+        /* --- LOGIQUE HEADER INTEGRÉE (ANTI-ENCOCHE) --- */
+        header { 
+            padding: 20px; 
+            border-bottom: 1px solid var(--border); 
+            text-align: center; 
+            background: var(--bg); 
+            z-index: 100;
+            position: relative;
+        }
         
-        header { padding: 25px 20px; border-bottom: 1px solid var(--border); text-align: center; background: var(--bg); z-index: 100; }
-        h1 { letter-spacing: 6px; margin: 0; font-size: 2.2em; font-weight: 800; color: var(--highlight); }
+        /* Ligne technique regroupant les contrôles */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            font-size: 1.1em; 
+            cursor: pointer; 
+            padding: 6px; 
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch { display: flex; gap: 4px; }
+        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; font-weight: 700; border-radius: 4px; }
+        .lang-btn.active { color: var(--highlight); border-color: var(--highlight); background-color: var(--card-bg); }
+        
+        h1 { letter-spacing: 8px; margin: 0; font-size: 2.4em; font-weight: 900; color: var(--highlight); text-indent: 8px; }
         
         .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--bg); shrink: 0; }
-        .tab { padding: 15px 5px; text-align: center; font-size: 0.8em; font-weight: 600; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; }
+        .tab { padding: 16px 5px; text-align: center; font-size: 0.75em; font-weight: 700; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; letter-spacing: 1px; }
         .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
         
         #feed { 
-            padding: 20px; 
+            padding: 16px; 
             flex: 1;
             overflow-y: auto;
             padding-bottom: 30px;
@@ -110,93 +138,115 @@
             scroll-behavior: smooth;
         }
         
+        /* --- TYPOGRAPHIE ET INTERLIGNAGE AMÉLIORÉS --- */
         .post-card { 
             background: var(--card-bg); 
             border: 1px solid var(--border); 
             color: var(--text); 
-            padding: 20px; 
-            margin-bottom: 16px; 
-            border-radius: 8px; 
+            padding: 22px 20px; 
+            margin-bottom: 14px; 
+            border-radius: 12px; 
             position: relative;
-            font-size: 16px; 
+            font-size: 15.5px; 
             font-weight: 400;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
             word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
         .card-signature {
             display: none;
-            margin-top: 15px;
+            margin-top: 18px;
             font-size: 0.7em;
             color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 2px;
             border-top: 1px dashed var(--border);
-            padding-top: 10px;
+            padding-top: 12px;
         }
         
-        .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; font-size: 0.85em; gap: 10px; }
-        .react-btn, .report-btn, .share-vision-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 5px 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-family: inherit; }
-        .react-btn:hover, .report-btn:hover, .share-vision-btn:hover { border-color: var(--highlight); color: var(--highlight); }
-        .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: bold; }
-        .report-btn, .share-vision-btn { font-size: 0.9em; padding: 5px 10px; }
+        /* --- DESIGN DES BOUTONS DE RÉACTION EXTENSIBLES --- */
+        .react-bar { 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            margin-top: 18px; 
+            font-size: 0.85em; 
+            gap: 12px; 
+        }
+        .react-btn, .report-btn, .share-vision-btn { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--accent); 
+            padding: 6px 14px; 
+            cursor: pointer; 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            transition: all 0.2s ease; 
+            font-family: inherit; 
+        }
+        .react-btn:hover, .report-btn:hover, .share-vision-btn:hover { border-color: var(--accent); color: var(--text); }
+        .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: 700; background-color: rgba(255, 59, 48, 0.05); }
+        .report-btn, .share-vision-btn { font-size: 0.9em; padding: 6px 10px; }
 
-        /* --- ZONE DE TEXTE & COMPTEUR REVISITÉS --- */
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 15px 20px; box-sizing: border-box; z-index: 200; }
-        .input-container { display: flex; background: var(--bg); padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; border-radius: 6px; }
-        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 15px; line-height: 1.4; }
-        ::placeholder { color: var(--accent); opacity: 0.6; }
+        /* --- FINITION ZONE D'ÉCRITURE --- */
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 16px 20px; box-sizing: border-box; z-index: 200; }
+        .input-container { display: flex; background: var(--bg); padding: 14px; border: 1px solid var(--border); margin-bottom: 6px; border-radius: 8px; }
+        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 15px; line-height: 1.5; }
+        ::placeholder { color: var(--accent); opacity: 0.5; }
         
-        /* Conteneur pour la ligne d'infos sous la zone de saisie */
         .input-info-row {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             padding-right: 2px;
         }
         .char-counter {
             font-size: 0.75em;
             color: var(--accent);
-            font-weight: bold;
-            opacity: 0.7;
+            font-weight: 700;
+            opacity: 0.6;
         }
         .char-counter.limit-reached {
             color: #ff3b30;
             opacity: 1;
         }
 
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 14px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; font-size: 0.9em; font-family: inherit; }
-        footer { margin-top: 8px; text-align: center; font-size: 0.65em; color: var(--accent); }
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 15px; width: 100%; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; font-size: 0.85em; font-family: inherit; transition: opacity 0.2s; }
+        .main-btn:active { opacity: 0.9; }
+        footer { margin-top: 10px; text-align: center; font-size: 0.65em; color: var(--accent); letter-spacing: 0.5px; }
 
-        /* --- BOUTON RETOUR EN HAUT DISCRET --- */
+        /* --- BOUTON EN HAUT POSITIONNÉ HORS TEXTE --- */
         #scroll-top-btn {
             position: absolute;
-            bottom: 180px; /* Positionné pour rester accessible au-dessus du bloc d'écriture */
+            bottom: 200px; 
             right: 20px;
             background: var(--card-bg);
             color: var(--text);
             border: 1px solid var(--border);
-            width: 38px;
-            height: 38px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            font-size: 1.1em;
+            font-size: 1.2em;
             cursor: pointer;
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 150;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: opacity 0.2s, transform 0.2s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
         }
-        #scroll-top-btn:active {
-            transform: scale(0.9);
-        }
+        #scroll-top-btn:active { transform: scale(0.9); }
 
         @media screen and (min-width: 768px) {
             #app-container {
                 max-width: 460px;       
                 height: 94vh;           
-                border-radius: 20px;    
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); 
+                border-radius: 24px;    
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5); 
                 border: 1px solid var(--border);
             }
         }
@@ -206,25 +256,18 @@
 
     <div id="app-container">
 
-        <div class="theme-switch">
-            <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
-        </div>
-
-        <div class="lang-switch">
-            <button id="btn-fr" class="lang-btn active" onclick="setLang('fr')">FR</button>
-            <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
-            <button id="btn-es" class="lang-btn" onclick="setLang('es')">ES</button>
-        </div>
-
-        <div id="manifesto-screen">
-            <h2 id="m-title">MANIFESTE DE QUÉ</h2>
-            <p id="m-text">Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.</p>
-            <button id="m-btn" class="main-btn" style="width: 200px;" onclick="entrerApp()">J'ENTRE</button>
-        </div>
-
         <header>
+            <!-- Ligne technique sécurisée anti-encoche téléphone -->
+            <div class="header-controls">
+                <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
+                <div class="lang-switch">
+                    <button id="btn-fr" class="lang-btn active" onclick="setLang('fr')">FR</button>
+                    <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
+                    <button id="btn-es" class="lang-btn" onclick="setLang('es')">ES</button>
+                </div>
+            </div>
             <h1>QUÉ</h1>
-            <p id="tagline" style="font-size: 0.75em; color: var(--accent); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px;">Conscientiser l'élite, une vérité à la fois.</p>
+            <p id="tagline" style="font-size: 0.72em; color: var(--accent); margin-top: 8px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 500;">Conscientiser l'élite, une vérité à la fois.</p>
         </header>
 
         <div class="tabs">
@@ -234,21 +277,18 @@
             <div id="tab4" class="tab" onclick="switchTab(3)">Société</div>
         </div>
 
-        <!-- Écoute du défilement pour afficher le bouton de retour en haut -->
         <div id="feed" onscroll="gererAffichageBoutonTop()">
             <button id="realtime-alert-btn" style="display:none; width: 100%; background: var(--highlight); color: var(--bg); font-family: inherit; font-weight: bold; border: none; font-size: 0.8em; padding: 12px; margin-bottom: 15px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="clicAlerteNouveaute()">
                 ✨ Nouvelles vérités disponibles ! Voir
             </button>
-
             <p style='text-align:center; color:var(--accent); font-size:0.85em;'>L'application attend votre entrée...</p>
         </div>
 
-        <!-- Bouton retour au sommet -->
         <button id="scroll-top-btn" onclick="remonterEnHaut()">↑</button>
 
         <div class="input-area" id="write-box">
             <div class="input-container">
-                <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:5px;">Je ne dis pas que...</span>
+                <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:6px;">Je ne dis pas que...</span>
                 <textarea id="message-input" rows="2" placeholder="..." maxlength="280" oninput="mettreAJourCompteur()"></textarea>
             </div>
             
@@ -261,6 +301,12 @@
             <footer>
                 <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer; font-weight: 500;">Légal / Legal / Aviso Legal</span>
             </footer>
+        </div>
+
+        <div id="manifesto-screen">
+            <h2 id="m-title">MANIFESTE DE QUÉ</h2>
+            <p id="m-text">Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.</p>
+            <button id="m-btn" class="main-btn" style="width: 200px;" onclick="entrerApp()">J'ENTRE</button>
         </div>
 
     </div>
@@ -285,7 +331,7 @@
         const translations = {
             fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Masquer définitivement ce contenu sur votre appareil ?", reported: "Contenu masqué localement. Signalement transmis pour examen.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place." },
             en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Permanently hide this content on your device?", reported: "Content hidden locally. Report transmitted for review.", share_vis_err: "Visual share failed. Image downloaded instead." },
-            es: { tagline: "Concienciar a la élite, una verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.", report_confirm: "¿Ocultar permanentemente este contenido en su dispositivo?", reported: "Contenido ocultado localmente. Reporte transmitido para revisión.", share_vis_err: "Error al compartir imagen. Descargada en su lugar." }
+            es: { tagline: "Concienciar a la élite, una verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para donuts.", report_confirm: "¿Ocultar permanentemente este contenido en su dispositivo?", reported: "Contenido ocultado localmente. Reporte transmitido para revisión.", share_vis_err: "Error al compartir imagen. Descargada en su lugar." }
         };
 
         function mettreAJourCompteur() {
@@ -297,29 +343,21 @@
             else counter.classList.remove('limit-reached');
         }
 
-        // --- GESTION DU BOUTON EN HAUT ---
         function gererAffichageBoutonTop() {
             const feed = document.getElementById('feed');
             const btn = document.getElementById('scroll-top-btn');
-            if (feed.scrollTop > 300) {
-                btn.style.display = 'flex';
-            } else {
-                btn.style.display = 'none';
-            }
+            if (feed.scrollTop > 300) btn.style.display = 'flex';
+            else btn.style.display = 'none';
         }
 
-        function remonterEnHaut() {
-            document.getElementById('feed').scrollTop = 0;
-        }
+        function remonterEnHaut() { document.getElementById('feed').scrollTop = 0; }
 
         function ajusterPaddingFeed() {
             const h = document.getElementById('write-box').offsetHeight;
             document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
         }
 
-        function obtenirSystemeEstClair() {
-            return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-        }
+        function obtenirSystemeEstClair() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; }
 
         function rafraichirIconeTheme() {
             const icon = document.getElementById('theme-icon');
@@ -350,9 +388,7 @@
             document.getElementById('manifesto-screen').style.display = 'none';
             localStorage.setItem('que_manifesto_lu', 'true'); 
             try {
-                if (window.supabase) {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                }
+                if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             } catch(e) {}
             chargerMessages();
             brancherEcouteTempsReel();
@@ -377,9 +413,7 @@
             if (localStorage.getItem('que_manifesto_lu') === 'true') {
                 document.getElementById('manifesto-screen').style.display = 'none';
                 try {
-                    if (window.supabase) {
-                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    }
+                    if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 } catch(e) {}
                 chargerMessages();
                 brancherEcouteTempsReel();
@@ -394,8 +428,6 @@
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
                     const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
                     const themeFiltre = nomsThemes[currentTabIdx];
-                    
-                    // Vérifier si le message inséré n'est pas masqué localement
                     let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
                     if (payload.new && payload.new.theme === themeFiltre && !masquesLocaux.includes(payload.new.id)) {
                         document.getElementById('realtime-alert-btn').style.display = 'block';
@@ -462,7 +494,7 @@
                     .from('messages')
                     .select('*')
                     .eq('theme', themeFiltre)
-                    .eq('signale', false) // Garde le filtre global de sécurité active
+                    .eq('signale', false)
                     .order('votes', { ascending: false })
                     .order('created_at', { ascending: false })
                     .limit(50);
@@ -471,9 +503,7 @@
                 feed.innerHTML = "";
                 feed.appendChild(alertBtn);
 
-                // Charger la liste des messages masqués localement par l'utilisateur
                 let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
-                // Filtrer les messages pour ne pas afficher ceux masqués localement
                 const donneesFiltrees = data ? data.filter(msg => !masquesLocaux.includes(msg.id)) : [];
 
                 if (donneesFiltrees.length === 0) {
@@ -587,28 +617,21 @@
             } catch(e) {}
         }
 
-        // --- AMÉLIORATION SUGGESTION 2 : SIGNALEMENT ET MASQUAGE LOCAL ANTI-ABUS ---
         async function signalerEtMasquerMessage(id) {
             if (!confirm(translations[currentLang].report_confirm)) return;
             
-            // 1. Ajouter immédiatement à la liste d'exclusion locale de l'appareil
             let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
             if (!masquesLocaux.includes(id)) {
                 masquesLocaux.push(id);
                 localStorage.setItem('que_masques', JSON.stringify(masquesLocaux));
             }
 
-            // Visuellement, on fait disparaître la carte tout de suite pour l'utilisateur
             const element = document.getElementById(`msg-${id}`);
             if (element) element.remove();
 
             alert(translations[currentLang].reported);
 
-            // 2. Transmettre discrètement le signalement à Supabase.
-            // Optionnel : On peut stocker un compteur en BDD, mais pour l'instant cela évite la destruction immédiate pour autrui.
             try {
-                // Optionnel : ici on envoie une requête de signalement ou on laisse la ligne existante
-                // si tu prévois un système de tri admin plus tard.
                 await supabaseClient.from('messages').update({ note_interne: "signale_par_utilisateur" }).eq('id', id);
             } catch(e) {}
         }
