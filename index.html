@@ -86,7 +86,6 @@
 
         #m-text { font-size: 1.1em; line-height: 1.6; letter-spacing: 0.2px; color: var(--text); }
 
-        /* --- LOGIQUE HEADER INTEGRÉE (ANTI-ENCOCHE) --- */
         header { 
             padding: 20px; 
             border-bottom: 1px solid var(--border); 
@@ -96,7 +95,6 @@
             position: relative;
         }
         
-        /* Ligne technique regroupant les contrôles */
         .header-controls {
             display: flex;
             justify-content: space-between;
@@ -138,7 +136,6 @@
             scroll-behavior: smooth;
         }
         
-        /* --- TYPOGRAPHIE ET INTERLIGNAGE AMÉLIORÉS --- */
         .post-card { 
             background: var(--card-bg); 
             border: 1px solid var(--border); 
@@ -166,7 +163,6 @@
             padding-top: 12px;
         }
         
-        /* --- DESIGN DES BOUTONS DE RÉACTION EXTENSIBLES --- */
         .react-bar { 
             display: flex; 
             justify-content: flex-end; 
@@ -192,7 +188,6 @@
         .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: 700; background-color: rgba(255, 59, 48, 0.05); }
         .report-btn, .share-vision-btn { font-size: 0.9em; padding: 6px 10px; }
 
-        /* --- FINITION ZONE D'ÉCRITURE --- */
         .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 16px 20px; box-sizing: border-box; z-index: 200; }
         .input-container { display: flex; background: var(--bg); padding: 14px; border: 1px solid var(--border); margin-bottom: 6px; border-radius: 8px; }
         textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 15px; line-height: 1.5; }
@@ -219,7 +214,6 @@
         .main-btn:active { opacity: 0.9; }
         footer { margin-top: 10px; text-align: center; font-size: 0.65em; color: var(--accent); letter-spacing: 0.5px; }
 
-        /* --- BOUTON EN HAUT POSITIONNÉ HORS TEXTE --- */
         #scroll-top-btn {
             position: absolute;
             bottom: 200px; 
@@ -257,7 +251,6 @@
     <div id="app-container">
 
         <header>
-            <!-- Ligne technique sécurisée anti-encoche téléphone -->
             <div class="header-controls">
                 <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
                 <div class="lang-switch">
@@ -329,9 +322,9 @@
         };
 
         const translations = {
-            fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Masquer définitivement ce contenu sur votre appareil ?", reported: "Contenu masqué localement. Signalement transmis pour examen.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place." },
-            en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Permanently hide this content on your device?", reported: "Content hidden locally. Report transmitted for review.", share_vis_err: "Visual share failed. Image downloaded instead." },
-            es: { tagline: "Concienciar a la élite, una verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para donuts.", report_confirm: "¿Ocultar permanentemente este contenido en su dispositivo?", reported: "Contenido ocultado localmente. Reporte transmitido para revisión.", share_vis_err: "Error al compartir imagen. Descargada en su lugar." }
+            fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Signaler ce message pour contenu inapproprié ou abusif ? Il sera masqué de votre écran.", reported: "Contenu masqué. Signalement envoyé pour modération sous 24h.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place." },
+            en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Report this message for inappropriate or abusive content? It will be hidden from your screen.", reported: "Content hidden. Report sent for moderation within 24h.", share_vis_err: "Visual share failed. Image downloaded instead." },
+            es: { tagline: "Concienciar a la élite, une verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.", report_confirm: "¿Reportar este mensaje por contenido inapropiado o abusivo? Se ocultará de su pantalla.", reported: "Contenido ocultado. Reporte enviado para moderación en 24h.", share_vis_err: "Error al compartir imagen. Descargada en su lugar." }
         };
 
         function mettreAJourCompteur() {
@@ -533,7 +526,7 @@
                     const reportBtn = document.createElement('button');
                     reportBtn.className = 'report-btn';
                     reportBtn.innerHTML = `🚩`;
-                    reportBtn.onclick = () => signalerEtMasquerMessage(msg.id);
+                    reportBtn.onclick = () => signalerEtMasquerMessage(msg.id, msg.signalements || 0);
 
                     const shareVisionBtn = document.createElement('button');
                     shareVisionBtn.className = 'share-vision-btn';
@@ -617,9 +610,11 @@
             } catch(e) {}
         }
 
-        async function signalerEtMasquerMessage(id) {
+        /* --- LOGIQUE DE SIGNALEMENT CONFORME AUX NORMES INTERNATIONALES (UGC) --- */
+        async function signalerEtMasquerMessage(id, signalementsActuels) {
             if (!confirm(translations[currentLang].report_confirm)) return;
             
+            // 1. Masquage immédiat local pour protéger l'utilisateur
             let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
             if (!masquesLocaux.includes(id)) {
                 masquesLocaux.push(id);
@@ -631,8 +626,15 @@
 
             alert(translations[currentLang].reported);
 
+            // 2. Traitement automatique côté serveur (Incrémentation et seuil de sécurité)
+            const nouveauxSignalements = signalementsActuels + 1;
+            const doitEtreMasqueGlobalement = nouveauxSignalements >= 3; // Seuil automatique à 3 signalements distincts
+
             try {
-                await supabaseClient.from('messages').update({ note_interne: "signale_par_utilisateur" }).eq('id', id);
+                await supabaseClient.from('messages').update({ 
+                    signalements: nouveauxSignalements,
+                    signale: doitEtreMasqueGlobalement 
+                }).eq('id', id);
             } catch(e) {}
         }
 
@@ -653,7 +655,7 @@
             }
 
             try {
-                const { error } = await supabaseClient.from('messages').insert([{ content: messageComplet, votes: 0, theme: themeDetecte, signale: false }]);
+                const { error } = await supabaseClient.from('messages').insert([{ content: messageComplet, votes: 0, theme: themeDetecte, signale: false, signalements: 0 }]);
                 if (!error) { 
                     input.value = ""; 
                     mettreAJourCompteur(); 
