@@ -134,6 +134,24 @@
             padding-bottom: 30px;
             background-color: var(--bg);
             scroll-behavior: smooth;
+            position: relative;
+        }
+
+        /* --- INDICATEUR DE PULL-TO-REFRESH --- */
+        #ptr-indicator {
+            text-align: center;
+            color: var(--accent);
+            font-size: 0.8em;
+            font-weight: bold;
+            height: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: height 0.1s ease, opacity 0.2s;
+            opacity: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .post-card { 
@@ -271,6 +289,7 @@
         </div>
 
         <div id="feed" onscroll="gererAffichageBoutonTop()">
+            <div id="ptr-indicator">↓ Glisser pour rafraîchir</div>
             <button id="realtime-alert-btn" style="display:none; width: 100%; background: var(--highlight); color: var(--bg); font-family: inherit; font-weight: bold; border: none; font-size: 0.8em; padding: 12px; margin-bottom: 15px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="clicAlerteNouveaute()">
                 ✨ Nouvelles vérités disponibles ! Voir
             </button>
@@ -311,10 +330,21 @@
         const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
         
+        // --- CONFIGURATION DU WEBHOOK DE MODÉRATION (Optionnel) ---
+        // Colle l'URL de ton webhook Discord/Slack ici pour être alerté en cas de bannissement de message
+        const MODERATION_WEBHOOK_URL = ""; 
+
         let supabaseClient = null;
         let currentLang = 'fr';
         let currentTabIdx = 0;
         let senderId = null;
+
+        // Variables pour le Pull-to-Refresh
+        let startY = 0;
+        let pullDeltaY = 0;
+        const ptrThreshold = 80; // pixels nécessaires pour déclencher l'action
+        const feedEl = document.getElementById('feed');
+        const ptrIndicator = document.getElementById('ptr-indicator');
 
         // --- GÉNÉRATION / RÉCUPÉRATION DE L'IDENTIFIANT ANONYME UNIQUE (SENDER ID) ---
         function getSenderId() {
@@ -333,9 +363,9 @@
         };
 
         const translations = {
-            fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Signaler ce message pour contenu inapproprié ou abusif ? Il sera masqué de votre écran.", reported: "Contenu masqué. Signalement envoyé pour modération sous 24h.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place.", block_confirm: "Masquer définitivement toutes les publications de cet utilisateur ?", block_self: "Vous ne pouvez pas vous bloquer vous-même." },
-            en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Report this message for inappropriate or abusive content? It will be hidden from your screen.", reported: "Content hidden. Report sent for moderation within 24h.", share_vis_err: "Visual share failed. Image downloaded instead.", block_confirm: "Permanently hide all posts from this user?", block_self: "You cannot block yourself." },
-            es: { tagline: "Concienciar a la élite, une verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.", report_confirm: "¿Reportar este mensaje por contenido inapropiado o abusivo? Se ocultará de su pantalla.", reported: "Contenido ocultado. Reporte enviado para moderación en 24h.", share_vis_err: "Error al compartir imagen. Descargada en su lugar.", block_confirm: "¿Ocultar permanentemente todas las publicaciones de este usuario?", block_self: "No puedes bloquearte a ti mismo." }
+            fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Signaler ce message pour contenu inapproprié ou abusif ? Il sera masqué de votre écran.", reported: "Contenu masqué. Signalement envoyé pour modération sous 24h.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place.", block_confirm: "Masquer définitivement toutes les publications de cet utilisateur ?", block_self: "Vous ne pouvez pas vous bloquer vous-même.", ptr_pull: "↓ Glisser pour rafraîchir", ptr_release: "↑ Relâcher pour rafraîchir", ptr_loading: "Mise à jour...", offline_mode: "Mode hors-ligne actif (affichage des données sauvegardées)" },
+            en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Report this message for inappropriate or abusive content? It will be hidden from your screen.", reported: "Content hidden. Report sent for moderation within 24h.", share_vis_err: "Visual share failed. Image downloaded instead.", block_confirm: "Permanently hide all posts from this user?", block_self: "You cannot block yourself.", ptr_pull: "↓ Pull to refresh", ptr_release: "↑ Release to refresh", ptr_loading: "Updating...", offline_mode: "Offline mode active (displaying cached data)" },
+            es: { tagline: "Concienciar a la élite, une verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.", report_confirm: "¿Reportar este message por contenido inapropiado o abusivo? Se ocultará de su pantalla.", reported: "Contenido ocultado. Reporte enviado para moderación en 24h.", share_vis_err: "Error al compartir imagen. Descargada en su lugar.", block_confirm: "¿Ocultar permanentemente todas las publicaciones de este usuario?", block_self: "No puedes bloquearte a ti mismo.", ptr_pull: "↓ Deslizar para actualizar", ptr_release: "↑ Soltar para actualizar", ptr_loading: "Actualizando...", offline_mode: "Modo sin conexión activo (mostrando datos guardados)" }
         };
 
         function mettreAJourCompteur() {
@@ -391,12 +421,13 @@
         function entrerApp() {
             document.getElementById('manifesto-screen').style.display = 'none';
             localStorage.setItem('que_manifesto_lu', 'true'); 
-            senderId = getSenderId(); // Sécurisation ID anonyme
+            senderId = getSenderId();
             try {
                 if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             } catch(e) {}
             chargerMessages();
             brancherEcouteTempsReel();
+            configurerPullToRefresh();
             setTimeout(ajusterPaddingFeed, 100);
         }
 
@@ -417,15 +448,65 @@
 
             if (localStorage.getItem('que_manifesto_lu') === 'true') {
                 document.getElementById('manifesto-screen').style.display = 'none';
-                senderId = getSenderId(); // Sécurisation ID anonyme
+                senderId = getSenderId();
                 try {
                     if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 } catch(e) {}
                 chargerMessages();
                 brancherEcouteTempsReel();
+                configurerPullToRefresh();
                 setTimeout(ajusterPaddingFeed, 100);
             }
         });
+
+        // --- GESTION DU GESTE PULL-TO-REFRESH ---
+        function configurerPullToRefresh() {
+            feedEl.addEventListener('touchstart', (e) => {
+                if (feedEl.scrollTop === 0) {
+                    startY = e.touches[0].clientY;
+                    ptrIndicator.style.transition = 'none';
+                } else {
+                    startY = 0;
+                }
+            }, { passive: true });
+
+            feedEl.addEventListener('touchmove', (e) => {
+                if (startY === 0) return;
+                const currentY = e.touches[0].clientY;
+                pullDeltaY = currentY - startY;
+
+                if (pullDeltaY > 0) {
+                    // Résistance élastique pour un meilleur feeling
+                    const height = Math.min(pullDeltaY * 0.4, ptrThreshold + 20);
+                    ptrIndicator.style.height = `${height}px`;
+                    ptrIndicator.style.opacity = Math.min(height / ptrThreshold, 1);
+                    
+                    if (height >= ptrThreshold) {
+                        ptrIndicator.innerText = translations[currentLang].ptr_release;
+                    } else {
+                        ptrIndicator.innerText = translations[currentLang].ptr_pull;
+                    }
+                }
+            }, { passive: true });
+
+            feedEl.addEventListener('touchend', async () => {
+                if (startY === 0 || pullDeltaY <= 0) return;
+                
+                const finalHeight = parseFloat(ptrIndicator.style.height);
+                ptrIndicator.style.transition = 'height 0.2s ease, opacity 0.2s';
+                
+                if (finalHeight >= ptrThreshold) {
+                    ptrIndicator.style.height = '40px';
+                    ptrIndicator.innerText = translations[currentLang].ptr_loading;
+                    await chargerMessages();
+                }
+                
+                ptrIndicator.style.height = '0px';
+                ptrIndicator.style.opacity = '0';
+                startY = 0;
+                pullDeltaY = 0;
+            });
+        }
 
         function brancherEcouteTempsReel() {
             if (!supabaseClient) return;
@@ -486,95 +567,125 @@
             remonterEnHaut();
         }
 
+        // --- CHARGEMENT ROBUSTE AVEC MODE HORS-LIGNE (CACHING LOCAL) ---
         async function chargerMessages() {
             const feed = document.getElementById('feed');
-            if (!supabaseClient) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Mode Démo local actif.</p>";
-                return;
-            }
-
             const alertBtn = document.getElementById('realtime-alert-btn');
+            
+            // On conserve l'indicateur de PTR et le bouton d'alerte
             feed.innerHTML = "";
+            feed.appendChild(ptrIndicator);
             feed.appendChild(alertBtn); 
 
             const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
             const themeFiltre = nomsThemes[currentTabIdx];
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('messages')
-                    .select('*')
-                    .eq('theme', themeFiltre)
-                    .eq('signale', false)
-                    .order('votes', { ascending: false })
-                    .order('created_at', { ascending: false })
-                    .limit(50);
+            let data = null;
+            let estHorsLigne = false;
 
-                if (error) throw error;
-                feed.innerHTML = "";
-                feed.appendChild(alertBtn);
+            if (!supabaseClient) {
+                // Essai de reconnexion
+                try {
+                    if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } catch(e) {}
+            }
 
-                let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
-                let blockedUsers = JSON.parse(localStorage.getItem('que_blocked')) || [];
-                
-                // Filtrage combiné : masqués locaux + utilisateurs bloqués
-                const donneesFiltrees = data ? data.filter(msg => !masquesLocaux.includes(msg.id) && !blockedUsers.includes(msg.sender_id)) : [];
-
-                if (donneesFiltrees.length === 0) {
-                    feed.innerHTML += `<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Aucune vérité en ${themeFiltre}.</p>`;
-                    return;
+            if (supabaseClient && navigator.onLine) {
+                try {
+                    const res = await supabaseClient
+                        .from('messages')
+                        .select('*')
+                        .eq('theme', themeFiltre)
+                        .eq('signale', false)
+                        .order('votes', { ascending: false })
+                        .order('created_at', { ascending: false })
+                        .limit(50);
+                    
+                    if (!res.error) {
+                        data = res.data;
+                        // Sauvegarde dans le cache local pour le mode hors-ligne
+                        localStorage.setItem(`que_cache_${themeFiltre}`, JSON.stringify(data));
+                    }
+                } catch(e) {
+                    estHorsLigne = true;
                 }
+            } else {
+                estHorsLigne = true;
+            }
 
-                let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
+            // Récupération depuis le cache si on est hors-ligne ou si la requête a échoué
+            if (estHorsLigne || !data) {
+                const cacheLocal = localStorage.getItem(`que_cache_${themeFiltre}`);
+                if (cacheLocal) {
+                    data = JSON.parse(cacheLocal);
+                }
+            }
 
-                donneesFiltrees.forEach(msg => {
-                    const card = document.createElement('div');
-                    card.className = 'post-card';
-                    card.id = `msg-${msg.id}`;
-                    
-                    const textEl = document.createElement('div');
-                    textEl.innerText = msg.content;
-                    card.appendChild(textEl);
+            let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
+            let blockedUsers = JSON.parse(localStorage.getItem('que_blocked')) || [];
+            
+            const donneesFiltrees = data ? data.filter(msg => !masquesLocaux.includes(msg.id) && !blockedUsers.includes(msg.sender_id)) : [];
 
-                    const signatureEl = document.createElement('div');
-                    signatureEl.className = 'card-signature';
-                    signatureEl.innerText = `— Partagé depuis l'ombre via QUÉ`;
-                    card.appendChild(signatureEl);
+            if (estHorsLigne) {
+                const infoOffline = document.createElement('p');
+                infoOffline.style = "text-align:center; color:var(--accent); font-size:0.75em; font-style:italic; margin-bottom: 10px;";
+                infoOffline.innerText = translations[currentLang].offline_mode;
+                feed.appendChild(infoOffline);
+            }
 
-                    const reactBar = document.createElement('div');
-                    reactBar.className = 'react-bar';
-                    
-                    // Bouton de blocage sécurisé UGC
-                    const blockBtn = document.createElement('button');
-                    blockBtn.className = 'block-btn';
-                    blockBtn.innerHTML = `🚫`;
-                    blockBtn.title = translations[currentLang].block_confirm;
-                    blockBtn.onclick = () => bloquerUtilisateur(msg.sender_id);
+            if (donneesFiltrees.length === 0) {
+                feed.innerHTML += `<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Aucune vérité en ${themeFiltre}.</p>`;
+                return;
+            }
 
-                    const reportBtn = document.createElement('button');
-                    reportBtn.className = 'report-btn';
-                    reportBtn.innerHTML = `🚩`;
-                    reportBtn.onclick = () => signalerEtMasquerMessage(msg.id, msg.signalements || 0);
+            let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
 
-                    const shareVisionBtn = document.createElement('button');
-                    shareVisionBtn.className = 'share-vision-btn';
-                    shareVisionBtn.innerHTML = `📸`;
-                    shareVisionBtn.onclick = () => capturerEtPartagerCard(msg.id);
+            donneesFiltrees.forEach(msg => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.id = `msg-${msg.id}`;
+                
+                const textEl = document.createElement('div');
+                textEl.innerText = msg.content;
+                card.appendChild(textEl);
 
-                    const reactBtn = document.createElement('button');
-                    const hasVoted = votedMessages.includes(msg.id);
-                    reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
-                    reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
-                    reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
+                const signatureEl = document.createElement('div');
+                signatureEl.className = 'card-signature';
+                signatureEl.innerText = `— Partagé depuis l'ombre via QUÉ`;
+                card.appendChild(signatureEl);
 
-                    reactBar.appendChild(blockBtn);
-                    reactBar.appendChild(reportBtn);
-                    reactBar.appendChild(shareVisionBtn);
-                    reactBar.appendChild(reactBtn);
-                    card.appendChild(reactBar);
-                    feed.appendChild(card);
-                });
-            } catch(e) {}
+                const reactBar = document.createElement('div');
+                reactBar.className = 'react-bar';
+                
+                const blockBtn = document.createElement('button');
+                blockBtn.className = 'block-btn';
+                blockBtn.innerHTML = `🚫`;
+                blockBtn.title = translations[currentLang].block_confirm;
+                blockBtn.onclick = () => bloquerUtilisateur(msg.sender_id);
+
+                const reportBtn = document.createElement('button');
+                reportBtn.className = 'report-btn';
+                reportBtn.innerHTML = `🚩`;
+                reportBtn.onclick = () => signalerEtMasquerMessage(msg.id, msg.content, msg.signalements || 0);
+
+                const shareVisionBtn = document.createElement('button');
+                shareVisionBtn.className = 'share-vision-btn';
+                shareVisionBtn.innerHTML = `📸`;
+                shareVisionBtn.onclick = () => capturerEtPartagerCard(msg.id);
+
+                const reactBtn = document.createElement('button');
+                const hasVoted = votedMessages.includes(msg.id);
+                reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
+                reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
+                reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
+
+                reactBar.appendChild(blockBtn);
+                reactBar.appendChild(reportBtn);
+                reactBar.appendChild(shareVisionBtn);
+                reactBar.appendChild(reactBtn);
+                card.appendChild(reactBar);
+                feed.appendChild(card);
+            });
         }
 
         function capturerEtPartagerCard(id) {
@@ -639,11 +750,11 @@
             } catch(e) {}
         }
 
-        /* --- LOGIQUE DE SIGNALEMENT CONFORME AUX NORMES INTERNATIONALES (UGC) --- */
-        async function signalerEtMasquerMessage(id, signalementsActuels) {
+        /* --- LOGIQUE DE SIGNALEMENT ET ALERTE MODÉRATION WEBHOOK --- */
+        async function signalerEtMasquerMessage(id, contenuMessage, signalementsActuels) {
             if (!confirm(translations[currentLang].report_confirm)) return;
             
-            // 1. Masquage immédiat local pour protéger l'utilisateur
+            // 1. Masquage local immédiat
             let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
             if (!masquesLocaux.includes(id)) {
                 masquesLocaux.push(id);
@@ -655,7 +766,7 @@
 
             alert(translations[currentLang].reported);
 
-            // 2. Traitement automatique côté serveur (Incrémentation et seuil de sécurité)
+            // 2. Traitement automatique côté serveur
             const nouveauxSignalements = signalementsActuels + 1;
             const doitEtreMasqueGlobalement = nouveauxSignalements >= 3; // Seuil automatique à 3 signalements distincts
 
@@ -664,6 +775,18 @@
                     signalements: nouveauxSignalements,
                     signale: doitEtreMasqueGlobalement 
                 }).eq('id', id);
+
+                // 3. Envoi d'une alerte Webhook silencieuse si le message est banni
+                if (doitEtreMasqueGlobalement && MODERATION_WEBHOOK_URL !== "") {
+                    fetch(MODERATION_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: "Modérateur QUÉ",
+                            content: `🚨 **Message banni automatiquement (3 signalements) !**\n\n**Texte :** "${contenuMessage}"\n**ID :** \`${id}\``
+                        })
+                    }).catch(e => console.error("Échec envoi webhook :", e));
+                }
             } catch(e) {}
         }
 
@@ -701,7 +824,6 @@
             }
 
             try {
-                // Insertion sécurisée avec liaison invisible à l'ID de l'appareil (sender_id)
                 const { error } = await supabaseClient.from('messages').insert([{ 
                     content: messageComplet, 
                     votes: 0, 
