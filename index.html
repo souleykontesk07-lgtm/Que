@@ -1,103 +1,133 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QUÉ - La Voix de l'Ombre</title>
-    <link rel="manifest" href="manifest.json">
-    <style>
-        :root { --bg: #000000; --card-bg: #0b0b0b; --text: #e5e5e5; --accent: #737373; --border: #1e1e1e; --highlight: #ffffff; }
-        @media (prefers-color-scheme: light) { :root { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; } }
-        body.force-dark-mode { --bg: #000000; --card-bg: #0b0b0b; --text: #e5e5e5; --accent: #737373; --border: #1e1e1e; --highlight: #ffffff; }
-        body.force-light-mode { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; }
-        
-        body { background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
-        #app-container { width: 100%; height: 100vh; background-color: var(--bg); position: relative; display: flex; flex-direction: column; overflow: hidden; }
-        
-        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; }
-        h1 { margin: 0; font-size: 2.4em; font-weight: 900; color: var(--highlight); letter-spacing: 8px; }
-        
-        #feed { padding: 16px; flex: 1; overflow-y: auto; padding-bottom: 120px; }
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 14px; border-radius: 12px; }
-        
-        .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; gap: 10px; }
-        .action-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 0.9em; transition: 0.2s; }
-        .action-btn:hover { border-color: var(--accent); color: var(--text); }
-        .action-btn.voted { border-color: #ff3b30; color: #ff3b30; }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // 1. Initialisation de l'identité anonyme (Device ID)
+    function getSenderId() {
+        let id = localStorage.getItem('que_sender_id');
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem('que_sender_id', id);
+        }
+        return id;
+    }
 
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 16px; border-top: 1px solid var(--border); }
-        textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); width: 100%; padding: 10px; border-radius: 8px; resize: none; box-sizing: border-box; }
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; border-radius: 8px; margin-top: 8px; text-transform: uppercase; }
-        
-        @media screen and (min-width: 768px) { #app-container { max-width: 460px; height: 94vh; border-radius: 24px; border: 1px solid var(--border); margin-top: 3vh; } }
-    </style>
-</head>
-<body>
-    <div id="app-container">
-        <header><h1>QUÉ</h1></header>
-        <div id="feed"></div>
-        <div class="input-area">
-            <textarea id="msg-input" placeholder="..." maxlength="280"></textarea>
-            <button class="main-btn" onclick="publier()">PUBLIER</button>
-        </div>
-    </div>
+    // Initialisation du client avec tes vraies clés
+    const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const senderId = getSenderId();
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // 1. Initialisation de l'identité anonyme (Device ID)
-        function getSenderId() {
-            let id = localStorage.getItem('que_sender_id');
-            if (!id) {
-                id = crypto.randomUUID();
-                localStorage.setItem('que_sender_id', id);
+    async function chargerMessages() {
+        const blocked = JSON.parse(localStorage.getItem('que_blocked') || '[]');
+        
+        // On récupère les messages non signalés
+        let { data, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .eq('signale', false)
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error("Erreur de chargement :", error);
+            return;
+        }
+
+        const feed = document.getElementById('feed');
+        feed.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Aucune vérité pour le moment.</p>";
+            return;
+        }
+
+        // On filtre pour masquer les utilisateurs bloqués par l'appareil
+        data.filter(m => !blocked.includes(m.sender_id)).forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.innerHTML = `<div>${m.content}</div>
+                <div class="react-bar">
+                    <button class="action-btn" onclick="bloquer('${m.sender_id}')" title="Bloquer cet utilisateur">🚫</button>
+                    <button class="action-btn" onclick="signaler('${m.id}', ${m.signalements || 0})" title="Signaler">🚩</button>
+                    <button class="action-btn" onclick="voter('${m.id}', ${m.votes || 0})">🎯 <span>${m.votes || 0}</span></button>
+                </div>`;
+            feed.appendChild(card);
+        });
+    }
+
+    async function publier() {
+        const input = document.getElementById('msg-input');
+        const content = input.value.trim();
+        if (!content) return;
+
+        const { error } = await supabaseClient.from('messages').insert([
+            { 
+                content: content, 
+                sender_id: senderId, 
+                votes: 0, 
+                signalements: 0,
+                signale: false,
+                theme: "Société" // Thème par défaut
             }
-            return id;
-        }
+        ]);
 
-        const supabase = supabase.createClient("URL", "KEY"); // Remplacer par TES infos
-        const senderId = getSenderId();
-
-        async function chargerMessages() {
-            const blocked = JSON.parse(localStorage.getItem('que_blocked') || '[]');
-            let { data } = await supabase.from('messages').select('*').eq('signale', false);
-            
-            const feed = document.getElementById('feed');
-            feed.innerHTML = "";
-
-            data.filter(m => !blocked.includes(m.sender_id)).forEach(m => {
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerHTML = `<div>${m.content}</div>
-                    <div class="react-bar">
-                        <button class="action-btn" onclick="bloquer('${m.sender_id}')">🚫</button>
-                        <button class="action-btn" onclick="signaler('${m.id}')">🚩</button>
-                        <button class="action-btn" onclick="voter('${m.id}', ${m.votes})">🎯 ${m.votes}</button>
-                    </div>`;
-                feed.appendChild(card);
-            });
-        }
-
-        async function publier() {
-            const content = document.getElementById('msg-input').value;
-            await supabase.from('messages').insert([{ content, sender_id: senderId, votes: 0, signalements: 0 }]);
-            document.getElementById('msg-input').value = "";
+        if (!error) {
+            input.value = "";
             chargerMessages();
+        } else {
+            console.error("Erreur lors de la publication :", error);
         }
+    }
 
-        function bloquer(sid) {
-            if(!confirm("Masquer cet utilisateur ?")) return;
-            let blocked = JSON.parse(localStorage.getItem('que_blocked') || '[]');
+    function bloquer(sid) {
+        if (sid === senderId) {
+            alert("Vous ne pouvez pas vous bloquer vous-même !");
+            return;
+        }
+        if (!confirm("Voulez-vous masquer définitivement les publications de cet utilisateur ?")) return;
+        
+        let blocked = JSON.parse(localStorage.getItem('que_blocked') || '[]');
+        if (!blocked.includes(sid)) {
             blocked.push(sid);
             localStorage.setItem('que_blocked', JSON.stringify(blocked));
-            chargerMessages();
+        }
+        chargerMessages();
+    }
+
+    async function signaler(id, signalementsActuels) {
+        if (!confirm("Signaler ce message pour contenu inapproprié ?")) return;
+        
+        const nouveauxSignalements = (signalementsActuels || 0) + 1;
+        const doitEtreMasque = nouveauxSignalements >= 3;
+
+        // On le masque immédiatement en local pour l'utilisateur
+        let masquesLocaux = JSON.parse(localStorage.getItem('que_masques') || '[]');
+        if (!masquesLocaux.includes(id)) {
+            masquesLocaux.push(id);
+            localStorage.setItem('que_masques', JSON.stringify(masquesLocaux));
         }
 
-        async function signaler(id) {
-            await supabase.from('messages').update({ signalements: 1 }).eq('id', id); // Simplifié pour l'exemple
-            chargerMessages();
-        }
+        await supabaseClient.from('messages').update({ 
+            signalements: nouveauxSignalements,
+            signale: doitEtreMasque 
+        }).eq('id', id);
 
         chargerMessages();
-    </script>
-</body>
-</html>
+    }
+
+    async function voter(id, currentVotes) {
+        let votedMessages = JSON.parse(localStorage.getItem('que_votes') || '[]');
+        if (votedMessages.includes(id)) return;
+
+        const nouveauxVotes = currentVotes + 1;
+        const { error } = await supabaseClient.from('messages').update({ votes: nouveauxVotes }).eq('id', id);
+        
+        if (!error) {
+            votedMessages.push(id);
+            localStorage.setItem('que_votes', JSON.stringify(votedMessages));
+            chargerMessages();
+        }
+    }
+
+    // Chargement initial
+    chargerMessages();
+</script>
