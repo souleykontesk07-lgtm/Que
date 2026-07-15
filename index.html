@@ -7,60 +7,50 @@
     <link rel="manifest" href="manifest.json">
     <style>
         :root { --bg: #000000; --card-bg: #0b0b0b; --text: #e5e5e5; --accent: #737373; --border: #1e1e1e; --highlight: #ffffff; }
-        
-        /* Classes pour forcer les modes d'affichage */
-        body.force-light-mode { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; }
+        @media (prefers-color-scheme: light) { :root { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; } }
         body.force-dark-mode { --bg: #000000; --card-bg: #0b0b0b; --text: #e5e5e5; --accent: #737373; --border: #1e1e1e; --highlight: #ffffff; }
+        body.force-light-mode { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; }
         
-        /* Mode auto (système) par défaut */
-        @media (prefers-color-scheme: light) {
-            body:not(.force-dark-mode) { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; }
-        }
-        
-        body { background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        body { background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
         #app-container { width: 100%; height: 100vh; background-color: var(--bg); position: relative; display: flex; flex-direction: column; overflow: hidden; }
         
-        header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        h1 { margin: 0; font-size: 2em; font-weight: 900; color: var(--highlight); letter-spacing: 6px; }
+        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; position: relative; }
+        h1 { margin: 0; font-size: 2.4em; font-weight: 900; color: var(--highlight); letter-spacing: 8px; }
         
-        .header-controls { display: flex; gap: 8px; }
-        .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px; cursor: pointer; border-radius: 8px; font-size: 1em; display: flex; align-items: center; justify-content: center; }
-        
-        #feed { padding: 16px; flex: 1; overflow-y: auto; padding-bottom: 180px; }
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 14px; border-radius: 12px; position: relative; }
-        .post-theme { font-size: 0.75em; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+        /* Boutons discrets dans le header d'origine */
+        .header-left-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 1.2em; }
+        .header-right-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 1.2em; }
+
+        #feed { padding: 16px; flex: 1; overflow-y: auto; padding-bottom: 150px; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 14px; border-radius: 12px; }
         
         .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; gap: 10px; }
         .action-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 0.9em; transition: 0.2s; }
         .action-btn:hover { border-color: var(--accent); color: var(--text); }
 
         .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 16px; border-top: 1px solid var(--border); box-sizing: border-box; }
-        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        
         textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); width: 100%; padding: 10px; border-radius: 8px; resize: none; box-sizing: border-box; font-family: inherit; }
-        select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 8px; font-family: inherit; flex: 1; }
         
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; border-radius: 8px; text-transform: uppercase; }
+        /* Compteur de caractères classique sous la zone de texte */
+        .input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; color: var(--accent); font-size: 0.8em; }
         
-        /* Modal pour le Cadre Légal / Charte */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 25px; border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; }
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; border-radius: 8px; margin-top: 8px; text-transform: uppercase; }
+        
+        /* Modale discrète pour le cadre légal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 25px; border-radius: 16px; max-width: 420px; width: 100%; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .modal-title { margin: 0; font-size: 1.3em; font-weight: 700; }
-        
+        .modal-title { margin: 0; font-size: 1.1em; font-weight: 700; letter-spacing: 1px; }
+
         @media screen and (min-width: 768px) { #app-container { max-width: 460px; height: 94vh; border-radius: 24px; border: 1px solid var(--border); margin-top: 3vh; } }
     </style>
 </head>
-<body class="force-dark-mode" id="body-root"> <!-- Par défaut en Noir Sobre, personnalisable -->
+<body>
     <div id="app-container">
         <header>
+            <button class="header-left-btn" onclick="cycleDisplayMode()" title="Mode d'affichage">🌓</button>
             <h1>QUÉ</h1>
-            <div class="header-controls">
-                <!-- Bouton Thème d'affichage (Clair/Sombre/Auto) -->
-                <button class="icon-btn" onclick="cycleDisplayMode()" title="Changer le mode d'affichage" id="theme-toggle-btn">🌓</button>
-                <!-- Bouton Cadre Légal / Charte -->
-                <button class="icon-btn" onclick="toggleModal(true)" title="Cadre légal et Charte">📜</button>
-            </div>
+            <button class="header-right-btn" onclick="toggleModal(true)" title="Charte légale">📜</button>
         </header>
         
         <div id="feed">
@@ -68,44 +58,34 @@
         </div>
         
         <div class="input-area">
-            <div class="input-row">
-                <!-- Sélecteur de thème de publication -->
-                <select id="msg-theme">
-                    <option value="Général">💬 Général</option>
-                    <option value="Société">🌍 Société</option>
-                    <option value="Écologie">🌱 Écologie</option>
-                    <option value="Technologie">💻 Tech</option>
-                    <option value="Humeur">🔥 Humeur</option>
-                </select>
+            <textarea id="msg-input" placeholder="..." maxlength="280" oninput="updateCharCount()"></textarea>
+            <div class="input-footer">
+                <span>La Voix de l'Ombre</span>
+                <span id="char-count">280</span>
             </div>
-            <textarea id="msg-input" placeholder="Partagez votre vérité dans l'ombre..." maxlength="280" rows="2"></textarea>
             <button class="main-btn" onclick="publier()">PUBLIER</button>
         </div>
     </div>
 
-    <!-- Modale du cadre légal -->
+    <!-- Modale Charte -->
     <div class="modal" id="legal-modal" onclick="if(event.target == this) toggleModal(false)">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Charte & Cadre Légal</h3>
-                <button class="icon-btn" onclick="toggleModal(false)">✕</button>
+                <h3 class="modal-title">CHARTE & CADRE LÉGAL</h3>
+                <button style="background:transparent; border:none; color:var(--text); cursor:pointer;" onclick="toggleModal(false)">✕</button>
             </div>
-            <div style="font-size: 0.9em; line-height: 1.5; color: var(--text);">
-                <p><strong>Bienvenue sur QUÉ (La Voix de l'Ombre).</strong></p>
-                <p>Cette application est un espace de libre expression anonyme. Afin de garantir la sécurité de tous, vous vous engagez à respecter les règles suivantes :</p>
-                <ul>
-                    <li>Pas de harcèlement ciblé, de menaces ou de diffamation.</li>
-                    <li>Pas d'apologie de la violence ou de contenus haineux.</li>
-                    <li>Tout message atteignant 3 signalements est automatiquement retiré.</li>
-                </ul>
-                <p><em>Note technique : Pour vous protéger tout en assurant la modération exigée par les lois, un identifiant anonyme propre à votre appareil est lié à vos messages. Aucun email ou donnée personnelle n'est collecté.</em></p>
+            <div style="font-size: 0.85em; line-height: 1.6; color: var(--accent);">
+                <p>Bienvenue sur <strong>QUÉ</strong>.</p>
+                <p>Cette application est un espace d'expression libre et anonyme.</p>
+                <p>Pour la sécurité de tous, les propos haineux, diffamatoires ou de harcèlement sont strictement interdits. Tout message cumulant 3 signalements est automatiquement retiré.</p>
+                <p><em>Aucune donnée personnelle n'est collectée. Un identifiant anonyme propre à votre appareil permet la modération requise par la loi.</em></p>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // 1. Gestion de l'identité anonyme (Device ID)
+        // 1. Initialisation de l'identité anonyme (Device ID)
         function getSenderId() {
             let id = localStorage.getItem('que_sender_id');
             if (!id) {
@@ -133,18 +113,16 @@
             return false;
         }
 
-        // 2. Gestion des modes d'affichage (Clair, Sombre, Auto)
+        // 2. Gestion classique des modes d'affichage
         const modes = ['force-dark-mode', 'force-light-mode', 'auto'];
         let currentModeIndex = 0;
 
         function applyDisplayMode(mode) {
-            const body = document.getElementById('body-root');
-            body.classList.remove('force-dark-mode', 'force-light-mode');
-            
+            document.body.classList.remove('force-dark-mode', 'force-light-mode');
             if (mode === 'force-dark-mode') {
-                body.classList.add('force-dark-mode');
+                document.body.classList.add('force-dark-mode');
             } else if (mode === 'force-light-mode') {
-                body.classList.add('force-light-mode');
+                document.body.classList.add('force-light-mode');
             }
             localStorage.setItem('que_display_mode', mode);
         }
@@ -154,17 +132,24 @@
             applyDisplayMode(modes[currentModeIndex]);
         }
 
-        // Initialisation du mode d'affichage
+        // Initialisation du mode d'affichage sauvegardé
         const savedMode = localStorage.getItem('que_display_mode') || 'force-dark-mode';
         currentModeIndex = modes.indexOf(savedMode);
         applyDisplayMode(savedMode);
 
-        // 3. Gestion de la modale légale
+        // 3. Compteur de caractères
+        function updateCharCount() {
+            const input = document.getElementById('msg-input');
+            const count = document.getElementById('char-count');
+            count.innerText = 280 - input.value.length;
+        }
+
+        // 4. Modale Légale
         function toggleModal(show) {
             document.getElementById('legal-modal').style.display = show ? 'flex' : 'none';
         }
 
-        // 4. Moteur de l'application (Flux de messages)
+        // 5. Récupération et affichage classique des messages
         async function chargerMessages() {
             const feed = document.getElementById('feed');
             
@@ -192,6 +177,7 @@
                     return;
                 }
 
+                // Filtrage strict mais invisible pour l'utilisateur
                 const messagesFiltres = data.filter(m => !blocked.includes(m.sender_id) && !localMuted.includes(m.id));
 
                 if (messagesFiltres.length === 0) {
@@ -202,15 +188,10 @@
                 messagesFiltres.forEach(m => {
                     const card = document.createElement('div');
                     card.className = 'post-card';
-                    
-                    // Récupération ou valeur par défaut du thème
-                    const themeName = m.theme || "Général";
-
                     card.innerHTML = `
-                        <div class="post-theme"># ${themeName}</div>
                         <div>${m.content}</div>
                         <div class="react-bar">
-                            <button class="action-btn" onclick="bloquer('${m.sender_id}')" title="Bloquer cet utilisateur">🚫</button>
+                            <button class="action-btn" onclick="bloquer('${m.sender_id}')" title="Masquer cet utilisateur">🚫</button>
                             <button class="action-btn" onclick="signaler('${m.id}', ${m.signalements || 0})" title="Signaler">🚩</button>
                             <button class="action-btn" onclick="voter('${m.id}', ${m.votes || 0})">🎯 <span>${m.votes || 0}</span></button>
                         </div>`;
@@ -224,12 +205,22 @@
 
         async function publier() {
             const input = document.getElementById('msg-input');
-            const themeSelect = document.getElementById('msg-theme');
             const content = input.value.trim();
-            const theme = themeSelect.value;
             
             if (!content) return;
             if (!supabaseClient && !initSupabase()) return;
+
+            // Détection automatique de thèmes en arrière-plan basée sur des mots-clés 
+            // pour maintenir la cohérence de ta structure de données sans déranger l'utilisateur
+            let themeAutomatique = "Société";
+            const lowerContent = content.toLowerCase();
+            if (lowerContent.includes("nature") || lowerContent.includes("vert") || lowerContent.includes("éco") || lowerContent.includes("climat")) {
+                themeAutomatique = "Écologie";
+            } else if (lowerContent.includes("tech") || lowerContent.includes("code") || lowerContent.includes("app") || lowerContent.includes("ia")) {
+                themeAutomatique = "Technologie";
+            } else if (lowerContent.length < 50) {
+                themeAutomatique = "Humeur";
+            }
 
             try {
                 const { error } = await supabaseClient.from('messages').insert([
@@ -239,12 +230,13 @@
                         votes: 0, 
                         signalements: 0,
                         signale: false,
-                        theme: theme
+                        theme: themeAutomatique
                     }
                 ]);
 
                 if (!error) {
                     input.value = "";
+                    updateCharCount();
                     chargerMessages();
                 } else {
                     console.error("Erreur lors de la publication :", error);
