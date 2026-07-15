@@ -6,86 +6,317 @@
     <title>QUÉ - La Voix de l'Ombre</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        :root { --bg: #000000; --card-bg: #0b0b0b; --text: #e5e5e5; --accent: #737373; --border: #1e1e1e; --highlight: #ffffff; }
-        @media (prefers-color-scheme: light) { :root { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; } }
-        body.force-dark-mode { --bg: #000000; --card-bg: #0b0b0b; --text: #e5e5e5; --accent: #737373; --border: #1e1e1e; --highlight: #ffffff; }
-        body.force-light-mode { --bg: #fafafa; --card-bg: #ffffff; --text: #171717; --accent: #8a8a8a; --border: #e5e5e5; --highlight: #000000; }
-        
-        body { background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
-        #app-container { width: 100%; height: 100vh; background-color: var(--bg); position: relative; display: flex; flex-direction: column; overflow: hidden; }
-        
-        header { padding: 20px; border-bottom: 1px solid var(--border); text-align: center; position: relative; }
-        h1 { margin: 0; font-size: 2.4em; font-weight: 900; color: var(--highlight); letter-spacing: 8px; }
-        
-        /* Boutons discrets dans le header d'origine */
-        .header-left-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 1.2em; }
-        .header-right-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 1.2em; }
+        /* --- THÈME SOMBRE PAR DÉFAUT (Contrastes adoucis pour les yeux) --- */
+        :root {
+            --bg-hors-cadre: #0d0d0d; 
+            --bg: #000000;
+            --card-bg: #0b0b0b;       
+            --text: #e5e5e5;          
+            --accent: #737373;        
+            --border: #1e1e1e;
+            --highlight: #ffffff;
+        }
 
-        #feed { padding: 16px; flex: 1; overflow-y: auto; padding-bottom: 150px; }
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 14px; border-radius: 12px; }
-        
-        .react-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; gap: 10px; }
-        .action-btn { background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 0.9em; transition: 0.2s; }
-        .action-btn:hover { border-color: var(--accent); color: var(--text); }
+        /* --- DÉTECTION AUTOMATIQUE DU MODE CLAIR DU TÉLÉPHONE --- */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-hors-cadre: #f5f5f5;
+                --bg: #fafafa;
+                --card-bg: #ffffff;
+                --text: #171717;       
+                --accent: #8a8a8a;
+                --border: #e5e5e5;
+                --highlight: #000000;
+            }
+        }
 
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 16px; border-top: 1px solid var(--border); box-sizing: border-box; }
-        textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); width: 100%; padding: 10px; border-radius: 8px; resize: none; box-sizing: border-box; font-family: inherit; }
-        
-        /* Compteur de caractères classique sous la zone de texte */
-        .input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; color: var(--accent); font-size: 0.8em; }
-        
-        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; border-radius: 8px; margin-top: 8px; text-transform: uppercase; }
-        
-        /* Modale discrète pour le cadre légal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 25px; border-radius: 16px; max-width: 420px; width: 100%; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .modal-title { margin: 0; font-size: 1.1em; font-weight: 700; letter-spacing: 1px; }
+        /* --- CLASSES DE FORÇAGE --- */
+        body.force-dark-mode {
+            --bg-hors-cadre: #0d0d0d;
+            --bg: #000000;
+            --card-bg: #0b0b0b;
+            --text: #e5e5e5;
+            --accent: #737373;
+            --border: #1e1e1e;
+            --highlight: #ffffff;
+        }
 
-        @media screen and (min-width: 768px) { #app-container { max-width: 460px; height: 94vh; border-radius: 24px; border: 1px solid var(--border); margin-top: 3vh; } }
+        body.force-light-mode {
+            --bg-hors-cadre: #f5f5f5;
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --text: #171717;
+            --accent: #8a8a8a;
+            --border: #e5e5e5;
+            --highlight: #000000;
+        }
+
+        body { 
+            background-color: var(--bg-hors-cadre); 
+            color: var(--text); 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            transition: background 0.3s, color 0.3s;
+            margin: 0; padding: 0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #app-container {
+            width: 100%;
+            height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        #manifesto-screen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg); z-index: 1000; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center; 
+            padding: 30px; text-align: center; box-sizing: border-box; 
+        }
+
+        #m-text { font-size: 1.1em; line-height: 1.6; letter-spacing: 0.2px; color: var(--text); }
+
+        header { 
+            padding: 20px; 
+            border-bottom: 1px solid var(--border); 
+            text-align: center; 
+            background: var(--bg); 
+            z-index: 100;
+            position: relative;
+        }
+        
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            font-size: 1.1em; 
+            cursor: pointer; 
+            padding: 6px; 
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch { display: flex; gap: 4px; }
+        .lang-btn { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 5px 8px; cursor: pointer; font-size: 0.7em; font-weight: 700; border-radius: 4px; }
+        .lang-btn.active { color: var(--highlight); border-color: var(--highlight); background-color: var(--card-bg); }
+        
+        h1 { letter-spacing: 8px; margin: 0; font-size: 2.4em; font-weight: 900; color: var(--highlight); text-indent: 8px; }
+        
+        .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--bg); shrink: 0; }
+        .tab { padding: 16px 5px; text-align: center; font-size: 0.75em; font-weight: 700; cursor: pointer; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid transparent; letter-spacing: 1px; }
+        .tab.active { color: var(--highlight); border-bottom: 2px solid var(--highlight); }
+        
+        #feed { 
+            padding: 16px; 
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 30px;
+            background-color: var(--bg);
+            scroll-behavior: smooth;
+        }
+        
+        .post-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            padding: 22px 20px; 
+            margin-bottom: 14px; 
+            border-radius: 12px; 
+            position: relative;
+            font-size: 15.5px; 
+            font-weight: 400;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .card-signature {
+            display: none;
+            margin-top: 18px;
+            font-size: 0.7em;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-top: 1px dashed var(--border);
+            padding-top: 12px;
+        }
+        
+        .react-bar { 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            margin-top: 18px; 
+            font-size: 0.85em; 
+            gap: 12px; 
+        }
+        .react-btn, .report-btn, .share-vision-btn, .block-btn { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--accent); 
+            padding: 6px 14px; 
+            cursor: pointer; 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            transition: all 0.2s ease; 
+            font-family: inherit; 
+        }
+        .react-btn:hover, .report-btn:hover, .share-vision-btn:hover, .block-btn:hover { border-color: var(--accent); color: var(--text); }
+        .react-btn.voted { border-color: #ff3b30; color: #ff3b30; font-weight: 700; background-color: rgba(255, 59, 48, 0.05); }
+        .report-btn, .share-vision-btn, .block-btn { font-size: 0.9em; padding: 6px 10px; }
+
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); padding: 16px 20px; box-sizing: border-box; z-index: 200; }
+        .input-container { display: flex; background: var(--bg); padding: 14px; border: 1px solid var(--border); margin-bottom: 6px; border-radius: 8px; }
+        textarea { background: transparent; border: none; color: var(--text); font-family: inherit; width: 100%; outline: none; resize: none; font-size: 15px; line-height: 1.5; }
+        ::placeholder { color: var(--accent); opacity: 0.5; }
+        
+        .input-info-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+            padding-right: 2px;
+        }
+        .char-counter {
+            font-size: 0.75em;
+            color: var(--accent);
+            font-weight: 700;
+            opacity: 0.6;
+        }
+        .char-counter.limit-reached {
+            color: #ff3b30;
+            opacity: 1;
+        }
+
+        .main-btn { background: var(--highlight); color: var(--bg); border: none; padding: 15px; width: 100%; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; font-size: 0.85em; font-family: inherit; transition: opacity 0.2s; }
+        .main-btn:active { opacity: 0.9; }
+        footer { margin-top: 10px; text-align: center; font-size: 0.65em; color: var(--accent); letter-spacing: 0.5px; }
+
+        #scroll-top-btn {
+            position: absolute;
+            bottom: 200px; 
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 150;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        #scroll-top-btn:active { transform: scale(0.9); }
+
+        @media screen and (min-width: 768px) {
+            #app-container {
+                max-width: 460px;       
+                height: 94vh;           
+                border-radius: 24px;    
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5); 
+                border: 1px solid var(--border);
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="app-container">
-        <header>
-            <button class="header-left-btn" onclick="cycleDisplayMode()" title="Mode d'affichage">🌓</button>
-            <h1>QUÉ</h1>
-            <button class="header-right-btn" onclick="toggleModal(true)" title="Charte légale">📜</button>
-        </header>
-        
-        <div id="feed">
-            <p style="text-align:center; color:var(--accent); font-size:0.85em; margin-top: 20px;">Initialisation...</p>
-        </div>
-        
-        <div class="input-area">
-            <textarea id="msg-input" placeholder="..." maxlength="280" oninput="updateCharCount()"></textarea>
-            <div class="input-footer">
-                <span>La Voix de l'Ombre</span>
-                <span id="char-count">280</span>
-            </div>
-            <button class="main-btn" onclick="publier()">PUBLIER</button>
-        </div>
-    </div>
 
-    <!-- Modale Charte -->
-    <div class="modal" id="legal-modal" onclick="if(event.target == this) toggleModal(false)">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">CHARTE & CADRE LÉGAL</h3>
-                <button style="background:transparent; border:none; color:var(--text); cursor:pointer;" onclick="toggleModal(false)">✕</button>
+    <div id="app-container">
+
+        <header>
+            <div class="header-controls">
+                <button id="theme-icon" class="theme-btn" onclick="toggleTheme()">🌙</button>
+                <div class="lang-switch">
+                    <button id="btn-fr" class="lang-btn active" onclick="setLang('fr')">FR</button>
+                    <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
+                    <button id="btn-es" class="lang-btn" onclick="setLang('es')">ES</button>
+                </div>
             </div>
-            <div style="font-size: 0.85em; line-height: 1.6; color: var(--accent);">
-                <p>Bienvenue sur <strong>QUÉ</strong>.</p>
-                <p>Cette application est un espace d'expression libre et anonyme.</p>
-                <p>Pour la sécurité de tous, les propos haineux, diffamatoires ou de harcèlement sont strictement interdits. Tout message cumulant 3 signalements est automatiquement retiré.</p>
-                <p><em>Aucune donnée personnelle n'est collectée. Un identifiant anonyme propre à votre appareil permet la modération requise par la loi.</em></p>
-            </div>
+            <h1>QUÉ</h1>
+            <p id="tagline" style="font-size: 0.72em; color: var(--accent); margin-top: 8px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 500;">Conscientiser l'élite, une vérité à la fois.</p>
+        </header>
+
+        <div class="tabs">
+            <div id="tab1" class="tab active" onclick="switchTab(0)">Politique</div>
+            <div id="tab2" class="tab" onclick="switchTab(1)">Économie</div>
+            <div id="tab3" class="tab" onclick="switchTab(2)">Culture</div>
+            <div id="tab4" class="tab" onclick="switchTab(3)">Société</div>
         </div>
+
+        <div id="feed" onscroll="gererAffichageBoutonTop()">
+            <button id="realtime-alert-btn" style="display:none; width: 100%; background: var(--highlight); color: var(--bg); font-family: inherit; font-weight: bold; border: none; font-size: 0.8em; padding: 12px; margin-bottom: 15px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="clicAlerteNouveaute()">
+                ✨ Nouvelles vérités disponibles ! Voir
+            </button>
+            <p style='text-align:center; color:var(--accent); font-size:0.85em;'>L'application attend votre entrée...</p>
+        </div>
+
+        <button id="scroll-top-btn" onclick="remonterEnHaut()">↑</button>
+
+        <div class="input-area" id="write-box">
+            <div class="input-container">
+                <span id="prefix-ui" style="color:var(--accent); font-weight:bold; padding-right:6px;">Je ne dis pas que...</span>
+                <textarea id="message-input" rows="2" placeholder="..." maxlength="280" oninput="mettreAJourCompteur()"></textarea>
+            </div>
+            
+            <div class="input-info-row">
+                <div id="counter-ui" class="char-counter">280</div>
+            </div>
+
+            <button id="pub-btn" class="main-btn" onclick="publier()">PUBLIER</button>
+            <button id="share-btn" class="main-btn" style="background:transparent; color:var(--accent); border:1px solid var(--border); margin-top:8px; font-size:0.8em; padding:10px; border-radius: 6px;" onclick="partagerApp()">PARTAGER L'APPLICATION</button>
+            <footer>
+                <span id="legal-txt" onclick="alertLegal()" style="cursor:pointer; font-weight: 500;">Légal / Legal / Aviso Legal</span>
+            </footer>
+        </div>
+
+        <div id="manifesto-screen">
+            <h2 id="m-title">MANIFESTE DE QUÉ</h2>
+            <p id="m-text">Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.</p>
+            <button id="m-btn" class="main-btn" style="width: 200px;" onclick="entrerApp()">J'ENTRE</button>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script>
-        // 1. Initialisation de l'identité anonyme (Device ID)
+        const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
+        
+        let supabaseClient = null;
+        let currentLang = 'fr';
+        let currentTabIdx = 0;
+        let senderId = null;
+
+        // --- GÉNÉRATION / RÉCUPÉRATION DE L'IDENTIFIANT ANONYME UNIQUE (SENDER ID) ---
         function getSenderId() {
             let id = localStorage.getItem('que_sender_id');
             if (!id) {
@@ -95,163 +326,355 @@
             return id;
         }
 
-        const SUPABASE_URL = "https://rmykkkotkleexmggkbld.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJteWtra290a2xlZXhtZ2drYmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYyNDksImV4cCI6MjA5NDcwMjI0OX0.G8uQ_1BI2lMYDIM-fpI6SW9arG-V8q9BfSh__kZSDM0";
-        
-        let supabaseClient = null;
-        const senderId = getSenderId();
+        const REPERTOIRE_THEMES = {
+            "Politique": ["politique", "gouvernement", "ministre", "loi", "vote", "élection", "président", "député", "état", "régime", "corruption", "pouvoir", "démocratie", "taxe", "parti", "parlement", "sénat", "maire", "suffrage", "dictature", "oligarchie", "république"],
+            "Économie": ["argent", "économie", "salaire", "prix", "inflation", "travail", "chômage", "euro", "banque", "entreprise", "marché", "achat", "coût", "finance", "impôt", "crise", "bourse", "pouvoir d'achat", "patron", "pib", "riches", "pauvres", "capital", "fisc"],
+            "Culture": ["culture", "art", "musique", "film", "cinéma", "livre", "artiste", "théâtre", "médias", "télé", "réseaux", "langue", "tradition", "histoire", "mode", "série", "expo", "concert", "musée", "littérature", "peinture", "influenceur", "presse"]
+        };
 
-        function initSupabase() {
-            try {
-                if (window.supabase) {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    return true;
-                }
-            } catch (e) {
-                console.error("Erreur d'initialisation Supabase:", e);
-            }
-            return false;
+        const translations = {
+            fr: { tagline: "Conscientiser l'élite, une vérité à la fois.", m_title: "MANIFESTE DE QUÉ", m_text: "Ici, vous n'êtes personne, et c'est ce qui donne du poids à votre voix.<br><br>Dites tout haut ce que vous vivez tout bas.", m_btn: "J'ENTRE", tabs: ["Politique", "Économie", "Culture", "Société"], prefix: "Je ne dis pas que...", pub_btn: "PUBLIER", alert: "Le silence ne conscientise personne.", legal: "QUÉ: Anonymat total. Contenus haineux interdits. Hébergé par GitHub. Usage réservé aux personnes majeures.", report_confirm: "Signaler ce message pour contenu inapproprié ou abusif ? Il sera masqué de votre écran.", reported: "Contenu masqué. Signalement envoyé pour modération sous 24h.", share_vis_err: "Le partage visuel a échoué. L'image a été téléchargée à la place.", block_confirm: "Masquer définitivement toutes les publications de cet utilisateur ?", block_self: "Vous ne pouvez pas vous bloquer vous-même." },
+            en: { tagline: "Raising awareness, one truth at a time.", m_title: "THE QUÉ MANIFESTO", m_text: "Here, you are no one, and that is what gives weight to your voice.<br><br>Speak out loud what you live in silence.", m_btn: "ENTER", tabs: ["Politics", "Economy", "Culture", "Society"], prefix: "I'm not saying that...", pub_btn: "POST", alert: "Silence raises no awareness.", legal: "QUÉ: Total anonymity. Hateful content prohibited. Hosted by GitHub. For adults only.", report_confirm: "Report this message for inappropriate or abusive content? It will be hidden from your screen.", reported: "Content hidden. Report sent for moderation within 24h.", share_vis_err: "Visual share failed. Image downloaded instead.", block_confirm: "Permanently hide all posts from this user?", block_self: "You cannot block yourself." },
+            es: { tagline: "Concienciar a la élite, une verdad a la vez.", m_title: "MANIFIESTO DE QUÉ", m_text: "Aquí, no eres nadie, y eso es lo que da peso a tu voz.<br><br>Di en voz alta lo que vives en silencio.", m_btn: "ENTRAR", tabs: ["Política", "Economía", "Cultura", "Sociedad"], prefix: "No digo que...", pub_btn: "PUBLICAR", alert: "El silence no conciencia a nadie.", legal: "QUÉ: Anonimato total. Contenido odioso prohibido. Alojado par GitHub. Solo para adultos.", report_confirm: "¿Reportar este mensaje por contenido inapropiado o abusivo? Se ocultará de su pantalla.", reported: "Contenido ocultado. Reporte enviado para moderación en 24h.", share_vis_err: "Error al compartir imagen. Descargada en su lugar.", block_confirm: "¿Ocultar permanentemente todas las publicaciones de este usuario?", block_self: "No puedes bloquearte a ti mismo." }
+        };
+
+        function mettreAJourCompteur() {
+            const input = document.getElementById('message-input');
+            const counter = document.getElementById('counter-ui');
+            const reste = 280 - input.value.length;
+            counter.innerText = reste;
+            if (reste <= 20) counter.classList.add('limit-reached');
+            else counter.classList.remove('limit-reached');
         }
 
-        // 2. Gestion classique des modes d'affichage
-        const modes = ['force-dark-mode', 'force-light-mode', 'auto'];
-        let currentModeIndex = 0;
+        function gererAffichageBoutonTop() {
+            const feed = document.getElementById('feed');
+            const btn = document.getElementById('scroll-top-btn');
+            if (feed.scrollTop > 300) btn.style.display = 'flex';
+            else btn.style.display = 'none';
+        }
 
-        function applyDisplayMode(mode) {
-            document.body.classList.remove('force-dark-mode', 'force-light-mode');
-            if (mode === 'force-dark-mode') {
+        function remonterEnHaut() { document.getElementById('feed').scrollTop = 0; }
+
+        function ajusterPaddingFeed() {
+            const h = document.getElementById('write-box').offsetHeight;
+            document.getElementById('feed').style.paddingBottom = (h + 20) + "px";
+        }
+
+        function obtenirSystemeEstClair() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; }
+
+        function rafraichirIconeTheme() {
+            const icon = document.getElementById('theme-icon');
+            const systemeEstClair = obtenirSystemeEstClair();
+            const themeForce = localStorage.getItem('que_theme_force');
+            const estLumineux = themeForce === 'light' || (!themeForce && systemeEstClair);
+            icon.innerText = estLumineux ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const systemeEstClair = obtenirSystemeEstClair();
+            const themeForce = localStorage.getItem('que_theme_force');
+            const estActuellementClair = themeForce === 'light' || (!themeForce && systemeEstClair);
+
+            if (estActuellementClair) {
+                document.body.classList.remove('force-light-mode');
                 document.body.classList.add('force-dark-mode');
-            } else if (mode === 'force-light-mode') {
+                localStorage.setItem('que_theme_force', 'dark');
+            } else {
+                document.body.classList.remove('force-dark-mode');
                 document.body.classList.add('force-light-mode');
+                localStorage.setItem('que_theme_force', 'light');
             }
-            localStorage.setItem('que_display_mode', mode);
+            rafraichirIconeTheme();
         }
 
-        function cycleDisplayMode() {
-            currentModeIndex = (currentModeIndex + 1) % modes.length;
-            applyDisplayMode(modes[currentModeIndex]);
+        function entrerApp() {
+            document.getElementById('manifesto-screen').style.display = 'none';
+            localStorage.setItem('que_manifesto_lu', 'true'); 
+            senderId = getSenderId(); // Sécurisation ID anonyme
+            try {
+                if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } catch(e) {}
+            chargerMessages();
+            brancherEcouteTempsReel();
+            setTimeout(ajusterPaddingFeed, 100);
         }
 
-        // Initialisation du mode d'affichage sauvegardé
-        const savedMode = localStorage.getItem('que_display_mode') || 'force-dark-mode';
-        currentModeIndex = modes.indexOf(savedMode);
-        applyDisplayMode(savedMode);
+        window.addEventListener('DOMContentLoaded', () => {
+            const themeForce = localStorage.getItem('que_theme_force');
+            if (themeForce === 'light') document.body.classList.add('force-light-mode');
+            else if (themeForce === 'dark') document.body.classList.add('force-dark-mode');
+            rafraichirIconeTheme();
 
-        // 3. Compteur de caractères
-        function updateCharCount() {
-            const input = document.getElementById('msg-input');
-            const count = document.getElementById('char-count');
-            count.innerText = 280 - input.value.length;
+            const savedTab = localStorage.getItem('que_current_tab_idx');
+            if (savedTab !== null) {
+                currentTabIdx = parseInt(savedTab, 10);
+                document.querySelectorAll('.tab').forEach((t, idx) => {
+                    if (idx === currentTabIdx) t.classList.add('active');
+                    else t.classList.remove('active');
+                });
+            }
+
+            if (localStorage.getItem('que_manifesto_lu') === 'true') {
+                document.getElementById('manifesto-screen').style.display = 'none';
+                senderId = getSenderId(); // Sécurisation ID anonyme
+                try {
+                    if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } catch(e) {}
+                chargerMessages();
+                brancherEcouteTempsReel();
+                setTimeout(ajusterPaddingFeed, 100);
+            }
+        });
+
+        function brancherEcouteTempsReel() {
+            if (!supabaseClient) return;
+            supabaseClient
+                .channel('table-db-changes')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                    const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
+                    const themeFiltre = nomsThemes[currentTabIdx];
+                    let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
+                    let blockedUsers = JSON.parse(localStorage.getItem('que_blocked')) || [];
+                    
+                    if (payload.new && 
+                        payload.new.theme === themeFiltre && 
+                        !masquesLocaux.includes(payload.new.id) &&
+                        !blockedUsers.includes(payload.new.sender_id)) {
+                        document.getElementById('realtime-alert-btn').style.display = 'block';
+                    }
+                })
+                .subscribe();
         }
 
-        // 4. Modale Légale
-        function toggleModal(show) {
-            document.getElementById('legal-modal').style.display = show ? 'flex' : 'none';
+        function clicAlerteNouveaute() {
+            document.getElementById('realtime-alert-btn').style.display = 'none';
+            chargerMessages();
+            remonterEnHaut();
         }
 
-        // 5. Récupération et affichage classique des messages
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-${lang}`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            document.getElementById('tagline').innerText = translations[lang].tagline;
+            document.getElementById('m-title').innerText = translations[lang].m_title;
+            document.getElementById('m-text').innerHTML = translations[lang].m_text;
+            document.getElementById('m-btn').innerText = translations[lang].m_btn;
+            document.getElementById('pub-btn').innerText = translations[lang].pub_btn;
+            document.getElementById('prefix-ui').innerText = translations[lang].prefix;
+            document.getElementById('tab1').innerText = translations[lang].tabs[0];
+            document.getElementById('tab2').innerText = translations[lang].tabs[1];
+            document.getElementById('tab3').innerText = translations[lang].tabs[2];
+            document.getElementById('tab4').innerText = translations[lang].tabs[3];
+            
+            if(document.getElementById('manifesto-screen').style.display === 'none') chargerMessages();
+            setTimeout(ajusterPaddingFeed, 50);
+        }
+
+        function alertLegal() { alert(translations[currentLang].legal); }
+
+        function switchTab(i) {
+            currentTabIdx = i;
+            localStorage.setItem('que_current_tab_idx', i);
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[i].classList.add('active');
+            document.getElementById('realtime-alert-btn').style.display = 'none'; 
+            chargerMessages();
+            remonterEnHaut();
+        }
+
         async function chargerMessages() {
             const feed = document.getElementById('feed');
-            
-            if (!supabaseClient && !initSupabase()) {
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Erreur de connexion...</p>";
+            if (!supabaseClient) {
+                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Mode Démo local actif.</p>";
                 return;
             }
 
-            const blocked = JSON.parse(localStorage.getItem('que_blocked') || '[]');
-            const localMuted = JSON.parse(localStorage.getItem('que_masques') || '[]');
-            
+            const alertBtn = document.getElementById('realtime-alert-btn');
+            feed.innerHTML = "";
+            feed.appendChild(alertBtn); 
+
+            const nomsThemes = ["Politique", "Économie", "Culture", "Société"];
+            const themeFiltre = nomsThemes[currentTabIdx];
+
             try {
-                let { data, error } = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('messages')
                     .select('*')
+                    .eq('theme', themeFiltre)
                     .eq('signale', false)
-                    .order('created_at', { ascending: false });
-                
+                    .order('votes', { ascending: false })
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
                 if (error) throw error;
-
                 feed.innerHTML = "";
+                feed.appendChild(alertBtn);
 
-                if (!data || data.length === 0) {
-                    feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Aucune vérité pour le moment.</p>";
+                let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
+                let blockedUsers = JSON.parse(localStorage.getItem('que_blocked')) || [];
+                
+                // Filtrage combiné : masqués locaux + utilisateurs bloqués
+                const donneesFiltrees = data ? data.filter(msg => !masquesLocaux.includes(msg.id) && !blockedUsers.includes(msg.sender_id)) : [];
+
+                if (donneesFiltrees.length === 0) {
+                    feed.innerHTML += `<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Aucune vérité en ${themeFiltre}.</p>`;
                     return;
                 }
 
-                // Filtrage strict mais invisible pour l'utilisateur
-                const messagesFiltres = data.filter(m => !blocked.includes(m.sender_id) && !localMuted.includes(m.id));
+                let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
 
-                if (messagesFiltres.length === 0) {
-                    feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Aucun nouveau message.</p>";
-                    return;
-                }
-
-                messagesFiltres.forEach(m => {
+                donneesFiltrees.forEach(msg => {
                     const card = document.createElement('div');
                     card.className = 'post-card';
-                    card.innerHTML = `
-                        <div>${m.content}</div>
-                        <div class="react-bar">
-                            <button class="action-btn" onclick="bloquer('${m.sender_id}')" title="Masquer cet utilisateur">🚫</button>
-                            <button class="action-btn" onclick="signaler('${m.id}', ${m.signalements || 0})" title="Signaler">🚩</button>
-                            <button class="action-btn" onclick="voter('${m.id}', ${m.votes || 0})">🎯 <span>${m.votes || 0}</span></button>
-                        </div>`;
+                    card.id = `msg-${msg.id}`;
+                    
+                    const textEl = document.createElement('div');
+                    textEl.innerText = msg.content;
+                    card.appendChild(textEl);
+
+                    const signatureEl = document.createElement('div');
+                    signatureEl.className = 'card-signature';
+                    signatureEl.innerText = `— Partagé depuis l'ombre via QUÉ`;
+                    card.appendChild(signatureEl);
+
+                    const reactBar = document.createElement('div');
+                    reactBar.className = 'react-bar';
+                    
+                    // Bouton de blocage sécurisé UGC
+                    const blockBtn = document.createElement('button');
+                    blockBtn.className = 'block-btn';
+                    blockBtn.innerHTML = `🚫`;
+                    blockBtn.title = translations[currentLang].block_confirm;
+                    blockBtn.onclick = () => bloquerUtilisateur(msg.sender_id);
+
+                    const reportBtn = document.createElement('button');
+                    reportBtn.className = 'report-btn';
+                    reportBtn.innerHTML = `🚩`;
+                    reportBtn.onclick = () => signalerEtMasquerMessage(msg.id, msg.signalements || 0);
+
+                    const shareVisionBtn = document.createElement('button');
+                    shareVisionBtn.className = 'share-vision-btn';
+                    shareVisionBtn.innerHTML = `📸`;
+                    shareVisionBtn.onclick = () => capturerEtPartagerCard(msg.id);
+
+                    const reactBtn = document.createElement('button');
+                    const hasVoted = votedMessages.includes(msg.id);
+                    reactBtn.className = 'react-btn' + (hasVoted ? ' voted' : '');
+                    reactBtn.innerHTML = `🎯 <span>${msg.votes || 0}</span>`;
+                    reactBtn.onclick = () => reagirMessage(msg.id, reactBtn, msg.votes || 0);
+
+                    reactBar.appendChild(blockBtn);
+                    reactBar.appendChild(reportBtn);
+                    reactBar.appendChild(shareVisionBtn);
+                    reactBar.appendChild(reactBtn);
+                    card.appendChild(reactBar);
                     feed.appendChild(card);
                 });
-            } catch (err) {
-                console.error("Erreur :", err);
-                feed.innerHTML = "<p style='text-align:center; color:var(--accent); font-size:0.85em;'>Une erreur est survenue.</p>";
-            }
+            } catch(e) {}
         }
 
-        async function publier() {
-            const input = document.getElementById('msg-input');
-            const content = input.value.trim();
-            
-            if (!content) return;
-            if (!supabaseClient && !initSupabase()) return;
+        function capturerEtPartagerCard(id) {
+            const card = document.getElementById(`msg-${id}`);
+            if (!card) return;
 
-            // Détection automatique de thèmes en arrière-plan basée sur des mots-clés 
-            // pour maintenir la cohérence de ta structure de données sans déranger l'utilisateur
-            let themeAutomatique = "Société";
-            const lowerContent = content.toLowerCase();
-            if (lowerContent.includes("nature") || lowerContent.includes("vert") || lowerContent.includes("éco") || lowerContent.includes("climat")) {
-                themeAutomatique = "Écologie";
-            } else if (lowerContent.includes("tech") || lowerContent.includes("code") || lowerContent.includes("app") || lowerContent.includes("ia")) {
-                themeAutomatique = "Technologie";
-            } else if (lowerContent.length < 50) {
-                themeAutomatique = "Humeur";
+            const reactBar = card.querySelector('.react-bar');
+            const signature = card.querySelector('.card-signature');
+            if (reactBar) reactBar.style.display = 'none';
+            if (signature) signature.style.display = 'block';
+
+            html2canvas(card, {
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg'),
+                scale: 2, 
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                if (reactBar) reactBar.style.display = 'flex';
+                if (signature) signature.style.display = 'none';
+
+                canvas.toBlob(async (blob) => {
+                    const fichierImage = new File([blob], `QUE-Verite-${id}.png`, { type: 'image/png' });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [fichierImage] })) {
+                        try {
+                            await navigator.share({
+                                files: [fichierImage],
+                                title: 'QUÉ — La Voix de l\'Ombre',
+                                text: 'Une vérité vient de sortir de l\'ombre...'
+                            });
+                        } catch (err) {
+                            telechargerImageFallback(canvas, id);
+                        }
+                    } else {
+                        telechargerImageFallback(canvas, id);
+                    }
+                });
+            });
+        }
+
+        function telechargerImageFallback(canvas, id) {
+            const lien = document.createElement('a');
+            lien.download = `QUE-Verite-${id}.png`;
+            lien.href = canvas.toDataURL('image/png');
+            lien.click();
+            alert(translations[currentLang].share_vis_err);
+        }
+
+        async function reagirMessage(id, btnElement, currentVotes) {
+            let votedMessages = JSON.parse(localStorage.getItem('que_votes')) || [];
+            if (votedMessages.includes(id)) return;
+            const nouveauxVotes = currentVotes + 1;
+            try {
+                const { error } = await supabaseClient.from('messages').update({ votes: nouveauxVotes }).eq('id', id);
+                if (!error) {
+                    votedMessages.push(id);
+                    localStorage.setItem('que_votes', JSON.stringify(votedMessages));
+                    btnElement.classList.add('voted');
+                    btnElement.querySelector('span').innerText = nouveauxVotes;
+                    setTimeout(chargerMessages, 1000);
+                }
+            } catch(e) {}
+        }
+
+        /* --- LOGIQUE DE SIGNALEMENT CONFORME AUX NORMES INTERNATIONALES (UGC) --- */
+        async function signalerEtMasquerMessage(id, signalementsActuels) {
+            if (!confirm(translations[currentLang].report_confirm)) return;
+            
+            // 1. Masquage immédiat local pour protéger l'utilisateur
+            let masquesLocaux = JSON.parse(localStorage.getItem('que_masques')) || [];
+            if (!masquesLocaux.includes(id)) {
+                masquesLocaux.push(id);
+                localStorage.setItem('que_masques', JSON.stringify(masquesLocaux));
             }
+
+            const element = document.getElementById(`msg-${id}`);
+            if (element) element.remove();
+
+            alert(translations[currentLang].reported);
+
+            // 2. Traitement automatique côté serveur (Incrémentation et seuil de sécurité)
+            const nouveauxSignalements = signalementsActuels + 1;
+            const doitEtreMasqueGlobalement = nouveauxSignalements >= 3; // Seuil automatique à 3 signalements distincts
 
             try {
-                const { error } = await supabaseClient.from('messages').insert([
-                    { 
-                        content: content, 
-                        sender_id: senderId, 
-                        votes: 0, 
-                        signalements: 0,
-                        signale: false,
-                        theme: themeAutomatique
-                    }
-                ]);
-
-                if (!error) {
-                    input.value = "";
-                    updateCharCount();
-                    chargerMessages();
-                } else {
-                    console.error("Erreur lors de la publication :", error);
-                }
-            } catch (e) {
-                console.error(e);
-            }
+                await supabaseClient.from('messages').update({ 
+                    signalements: nouveauxSignalements,
+                    signale: doitEtreMasqueGlobalement 
+                }).eq('id', id);
+            } catch(e) {}
         }
 
-        function bloquer(sid) {
+        /* --- SÉCURITÉ UGC : BLOCAGE D'AUTEUR --- */
+        function bloquerUtilisateur(sid) {
+            if (!sid) return;
             if (sid === senderId) {
-                alert("Vous ne pouvez pas vous bloquer vous-même !");
+                alert(translations[currentLang].block_self);
                 return;
             }
-            if (!confirm("Voulez-vous masquer définitivement les publications de cet utilisateur ?")) return;
+            if (!confirm(translations[currentLang].block_confirm)) return;
             
             let blocked = JSON.parse(localStorage.getItem('que_blocked') || '[]');
             if (!blocked.includes(sid)) {
@@ -261,51 +684,49 @@
             chargerMessages();
         }
 
-        async function signaler(id, signalementsActuels) {
-            if (!confirm("Signaler ce message pour contenu inapproprié ?")) return;
+        async function publier() {
+            const input = document.getElementById('message-input');
+            const texteMessage = input.value.trim();
+            if(texteMessage === "") return alert(translations[currentLang].alert);
             
-            const nouveauxSignalements = (signalementsActuels || 0) + 1;
-            const doitEtreMasque = nouveauxSignalements >= 3;
+            const messageComplet = `${translations[currentLang].prefix} ${texteMessage}`;
+            let themeDetecte = "Société";
+            const texteNettoye = texteMessage.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-            let masquesLocaux = JSON.parse(localStorage.getItem('que_masques') || '[]');
-            if (!masquesLocaux.includes(id)) {
-                masquesLocaux.push(id);
-                localStorage.setItem('que_masques', JSON.stringify(masquesLocaux));
-            }
-
-            try {
-                await supabaseClient.from('messages').update({ 
-                    signalements: nouveauxSignalements,
-                    signale: doitEtreMasque 
-                }).eq('id', id);
-            } catch (e) {
-                console.error(e);
-            }
-
-            chargerMessages();
-        }
-
-        async function voter(id, currentVotes) {
-            let votedMessages = JSON.parse(localStorage.getItem('que_votes') || '[]');
-            if (votedMessages.includes(id)) return;
-
-            const nouveauxVotes = currentVotes + 1;
-            try {
-                const { error } = await supabaseClient.from('messages').update({ votes: nouveauxVotes }).eq('id', id);
-                if (!error) {
-                    votedMessages.push(id);
-                    localStorage.setItem('que_votes', JSON.stringify(votedMessages));
-                    chargerMessages();
+            for (const [theme, motsCles] of Object.entries(REPERTOIRE_THEMES)) {
+                if (motsCles.some(mot => new RegExp(`\\b${mot.normalize("NFD").replace(/[\u0300-\u036f]/g, "")}\\b`, 'i').test(texteNettoye))) {
+                    themeDetecte = theme;
+                    break;
                 }
-            } catch (e) {
-                console.error(e);
             }
+
+            try {
+                // Insertion sécurisée avec liaison invisible à l'ID de l'appareil (sender_id)
+                const { error } = await supabaseClient.from('messages').insert([{ 
+                    content: messageComplet, 
+                    votes: 0, 
+                    theme: themeDetecte, 
+                    signale: false, 
+                    signalements: 0,
+                    sender_id: senderId
+                }]);
+                if (!error) { 
+                    input.value = ""; 
+                    mettreAJourCompteur(); 
+                    chargerMessages(); 
+                    remonterEnHaut();
+                }
+            } catch(e) {}
         }
 
-        window.onload = () => {
-            initSupabase();
-            chargerMessages();
-        };
+        function partagerApp() {
+            if (navigator.share) {
+                navigator.share({ title: "QUÉ", text: "Exprimez-vous anonymement sur QUÉ - La Voix de l'Ombre.", url: window.location.href }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Lien copié !");
+            }
+        }
     </script>
 </body>
 </html>
